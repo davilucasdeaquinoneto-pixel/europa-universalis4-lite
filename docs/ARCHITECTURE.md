@@ -19,10 +19,12 @@ Construir um jogo de grande estratégia independente, inspirado no gênero Europ
 - `include/simulation/Game.hpp`: coordenação da partida.
 - `include/map/MapPreview.hpp`: interface do exportador de mapa.
 - `include/map/ProvinceRaster.hpp`: interface do importador de raster BMP e fronteiras.
+- `include/map/ProvinceContours.hpp`: polígonos vetoriais extraídos dos limites de pixels.
 - `src/World.cpp`: leitura e validação de CSVs.
 - `src/Game.cpp`: avanço mensal, economia provisória, consultas e save.
 - `src/MapPreview.cpp`: projeção isométrica e exportação SVG sem biblioteca gráfica.
 - `src/ProvinceRaster.cpp`: leitura BMP 24/32-bit, associação RGB -> ID e extração de fronteiras.
+- `src/ProvinceContours.cpp`: extração de anéis de contorno, ilhas e buracos, com remoção de vértices colineares.
 - `src/main.cpp`: terminal interativo.
 - `data/map_layout.csv`: coordenadas de apresentação e elevação visual do mapa demonstrativo.
 - `data/`: países, continentes, regiões, sub-regiões, áreas, províncias, adjacências e conexões tipadas.
@@ -57,7 +59,7 @@ Não começar com terreno 3D completo, tesselação adaptativa, sombras caras ou
 
 ## Importador de raster
 
-`importProvinceRasterBmp` lê BMP Windows sem compressão (24 ou 32 bits), aplica definições RGB de um arquivo delimitado por ponto e vírgula e produz IDs por pixel, contagem por província e pares de fronteira. A comparação RGB é exata; cores desconhecidas causam erro, o que ajuda a detectar antialiasing. O importador não cria polígonos ainda e não altera o mundo ativo. Consulte `docs/PROVINCE_RASTER_IMPORT.md` para os limites e formatos.
+`importProvinceRasterBmp` lê BMP Windows sem compressão (24 ou 32 bits), aplica definições RGB de um arquivo delimitado por ponto e vírgula e produz IDs por pixel, contagem por província e pares de fronteira. A comparação RGB é exata; cores desconhecidas causam erro, o que ajuda a detectar antialiasing. O importador não altera o mundo ativo. `extractProvinceContours` converte os IDs por pixel em anéis vetoriais, preservando ilhas e buracos e removendo apenas pontos colineares. Consulte `docs/PROVINCE_RASTER_IMPORT.md` para os limites e formatos.
 
 ## Economia provisória
 
@@ -69,11 +71,11 @@ Cada país recebe mensalmente:
 
 ## Testes e integração contínua
 
-O CTest verifica calendário, carregamento do cenário, quantidades de entidades, consultas por ID/tag, desenvolvimento agregado, adjacência, hierarquia geográfica, conexões direcionais, importação de raster, extração de fronteiras, validação de dados, preservação transacional e exportação do SVG de mapa. O GitHub Actions compila e executa os testes em Ubuntu e Windows.
+O CTest verifica calendário, carregamento do cenário, quantidades de entidades, consultas por ID/tag, desenvolvimento agregado, adjacência, hierarquia geográfica, conexões direcionais, importação de raster, extração de fronteiras e polígonos (incluindo buracos e ilhas), validação de dados, preservação transacional e exportação do SVG de mapa. O GitHub Actions compila e executa os testes em Ubuntu e Windows.
 
 ## Próximos módulos
 
-1. Extrair contornos e polígonos simplificados do raster de IDs.
+1. Validar topologia dos polígonos e exportar geometria para inspeção visual.
 2. Importar terrain/climate/positions e associar metadados às províncias.
 3. Criar viewport 2D com pan/zoom, seleção por ID e camadas temáticas.
 4. Adicionar costas, rios, portos, estreitos e regras de navegação.
