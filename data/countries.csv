@@ -1,0 +1,5 @@
+tag,name,treasury,manpower,tax_modifier
+CAS,Castela,120,18000,1.00
+FRA,França,150,22000,1.05
+ENG,Inglaterra,110,15000,1.00
+POR,Portugal,85,9000,1.00
