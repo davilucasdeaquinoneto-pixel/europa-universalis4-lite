@@ -41,4 +41,11 @@ bool extractProvinceContours(const ProvinceRasterData& raster,
                              std::string& error,
                              bool ignoreProvinceIdZero = true);
 
+// Writes a flat SVG preview. evenodd fill keeps holes transparent.
+bool writeProvinceContoursSvg(const ProvinceContourData& contours,
+                              std::uint32_t width,
+                              std::uint32_t height,
+                              const std::string& outputPath,
+                              std::string& error);
+
 } // namespace eulite
