@@ -102,6 +102,8 @@ bool loadDefinitions(const std::string& path,
 
     std::string line;
     std::vector<std::string> fields;
+    std::unordered_set<std::uint32_t> provinceIds;
+    bool firstNonEmptyRecord = true;
     std::size_t lineNumber = 0;
     while (std::getline(file, line)) {
         ++lineNumber;
@@ -121,11 +123,15 @@ bool loadDefinitions(const std::string& path,
 
         std::uint32_t id = 0;
         if (fields.empty() || !parseUnsigned(fields[0], id)) {
-            if (lineNumber == 1) continue; // Optional header row.
+            if (firstNonEmptyRecord) {
+                firstNonEmptyRecord = false;
+                continue; // Optional header row.
+            }
             error = "ID de província inválido na definição, linha " +
                     std::to_string(lineNumber);
             return false;
         }
+        firstNonEmptyRecord = false;
         if (fields.size() < 4) {
             error = "Definição precisa conter ID e canais RGB, linha " +
                     std::to_string(lineNumber);
@@ -148,12 +154,10 @@ bool loadDefinitions(const std::string& path,
                     std::to_string(lineNumber);
             return false;
         }
-        for (const auto& entry : colorToId) {
-            if (entry.second == id) {
-                error = "ID de província duplicado no arquivo de definições, linha " +
-                        std::to_string(lineNumber);
-                return false;
-            }
+        if (!provinceIds.insert(id).second) {
+            error = "ID de província duplicado no arquivo de definições, linha " +
+                    std::to_string(lineNumber);
+            return false;
         }
         colorToId.emplace(key, id);
     }
@@ -203,7 +207,8 @@ bool importProvinceRasterBmp(const std::string& bitmapPath,
     if (dibSize < 40 || signedWidth <= 0 || signedHeight == 0 ||
         signedHeight == std::numeric_limits<std::int32_t>::min() ||
         planes != 1 || (bitsPerPixel != 24 && bitsPerPixel != 32) ||
-        compression != 0 || pixelOffset < 14U + dibSize) {
+        compression != 0 ||
+        static_cast<std::uint64_t>(pixelOffset) < 14ULL + dibSize) {
         error = "BMP incompatível: esperado BMP Windows sem compressão, 24 ou 32 bits.";
         return false;
     }
