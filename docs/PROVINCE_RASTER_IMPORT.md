@@ -58,10 +58,22 @@ O comando gera um CSV `province_a,province_b` com as fronteiras detectadas. Ele 
 
 A matriz ocupa aproximadamente 4 bytes por pixel. Um raster de 10 milhões de pixels usa cerca de 40 MB só para IDs, sem contar estruturas auxiliares.
 
+## Contornos vetoriais implementados
+
+`extractProvinceContours` transforma a matriz de IDs em anéis vetoriais por província:
+- Fronteiras seguem as arestas exatas dos pixels; nenhuma interpolação altera a forma.
+- Componentes desconectados são mantidos como anéis separados, permitindo províncias com ilhas.
+- Buracos internos são identificados pela orientação do anel (`isHole`).
+- Vértices colineares são removidos sem alterar a geometria ortogonal.
+- A saída é ordenada por ID de província para facilitar testes e serialização determinística.
+- A função valida dimensões e preserva a saída anterior em caso de falha.
+
+Os pontos usam coordenadas do raster, com origem no canto superior esquerdo. O ponto de fechamento não é repetido no vetor.
+
 ## Próximos passos
 
-1. Gerar máscaras e contornos por província.
-2. Converter contornos em polígonos simplificados e validar topologia.
+1. Adicionar validação topológica e associação de buracos ao contorno externo correto.
+2. Exportar os polígonos para um formato de inspeção (GeoJSON/SVG).
 3. Importar terrain/climate/positions e relacionar metadados aos IDs.
 4. Criar índices espaciais e viewport 2D com seleção por pixel.
 5. Integrar o raster ao renderizador sem misturar dados gráficos com o estado da simulação.
