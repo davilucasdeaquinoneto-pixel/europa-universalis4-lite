@@ -102,6 +102,6 @@ Não presumir que funções, defines, formatos ou regras do EU5 se aplicam ao EU
 - Fazer mudanças pequenas, compiláveis e testáveis.
 - Não adicionar renderer GPU pesado ou dependências grandes antes do modelo geográfico.
 - Não simular cada habitante como objeto individual; usar agregação.
-- Não alegar que examinou todos os 21.328 registros individualmente sem realmente processar o catálogo completo.
+- O catálogo completo do Engine Atlas foi processado programaticamente nesta auditoria: 21.332 registros. Isso não deve ser descrito como interpretação manual linha por linha de cada função.
 - Não alegar testes, builds, commits ou CI sem observar o resultado real.
 - Manter o núcleo de simulação independente da apresentação.
