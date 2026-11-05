@@ -5,12 +5,19 @@
 
 namespace eulite {
 
+struct Region {
+    int id = 0;
+    std::string name;
+};
+
 struct Province {
     int id = 0;
     std::string name;
     std::string ownerTag;
+    int regionId = 0;
     double development = 1.0;
     std::string terrain = "plains";
+    std::vector<int> adjacentProvinceIds;
 };
 
 struct Country {
@@ -25,6 +32,8 @@ class World {
 public:
     bool load(const std::string& dataDirectory, std::string& error);
 
+    std::vector<Region>& regions() { return regions_; }
+    const std::vector<Region>& regions() const { return regions_; }
     std::vector<Province>& provinces() { return provinces_; }
     const std::vector<Province>& provinces() const { return provinces_; }
     std::vector<Country>& countries() { return countries_; }
@@ -32,10 +41,14 @@ public:
 
     Country* findCountry(const std::string& tag);
     const Country* findCountry(const std::string& tag) const;
+    const Region* findRegion(int id) const;
+    const Province* findProvince(int id) const;
+    bool areAdjacent(int provinceA, int provinceB) const;
     int countOwnedProvinces(const std::string& tag) const;
     double developmentOf(const std::string& tag) const;
 
 private:
+    std::vector<Region> regions_;
     std::vector<Province> provinces_;
     std::vector<Country> countries_;
 };
