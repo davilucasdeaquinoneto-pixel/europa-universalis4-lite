@@ -11,6 +11,7 @@ add_executable(europa-lite
     src/Game.cpp
     src/MapPreview.cpp
     src/ProvinceRaster.cpp
+    src/ProvinceContours.cpp
 )
 
 target_include_directories(europa-lite PRIVATE include)
@@ -69,4 +70,11 @@ if(BUILD_TESTING)
     )
     target_include_directories(europa-lite-raster-tests PRIVATE include)
     add_test(NAME province-raster-tests COMMAND europa-lite-raster-tests)
+
+    add_executable(europa-lite-contour-tests
+        tests/TestProvinceContours.cpp
+        src/ProvinceContours.cpp
+    )
+    target_include_directories(europa-lite-contour-tests PRIVATE include)
+    add_test(NAME province-contour-tests COMMAND europa-lite-contour-tests)
 endif()

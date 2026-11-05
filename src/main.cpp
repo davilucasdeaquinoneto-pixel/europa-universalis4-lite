@@ -1,6 +1,7 @@
 #include "simulation/Game.hpp"
 #include "map/MapPreview.hpp"
 #include "map/ProvinceRaster.hpp"
+#include "map/ProvinceContours.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -53,7 +54,7 @@ int main(int argc, char* argv[]) {
                       << "provinces       - lista as províncias\n"
                       << "geography       - mostra a hierarquia geográfica\n"
                       << "connections     - lista ligações entre províncias\n"
-                      << "import-map BMP DEFINITIONS OUTPUT.csv - extrai fronteiras do raster\n"
+                      << "import-map BMP DEFINITIONS OUTPUT.csv [MAP.svg] - importa raster e gera fronteiras/polígonos\n"
                       << "tick [meses]    - avança o calendário (padrão: 1 mês)\n"
                       << "save [arquivo]  - salva o estado atual\n"
                       << "map [arquivo]   - gera um mapa isométrico SVG\n"
@@ -95,17 +96,28 @@ int main(int argc, char* argv[]) {
                               ? " | transitável" : " | bloqueada") << "\n";
             }
         } else if (command == "import-map") {
-            std::string bitmapPath, definitionPath, outputPath;
+            std::string bitmapPath, definitionPath, outputPath, svgPath;
             if (!(input >> bitmapPath >> definitionPath >> outputPath)) {
-                std::cout << "Uso: import-map provinces.bmp definition.csv adjacencies.csv\n";
+                std::cout << "Uso: import-map provinces.bmp definition.csv adjacencies.csv [mapa.svg]\n";
                 continue;
             }
+            input >> svgPath;
 
             eulite::ProvinceRasterData raster;
             if (!eulite::importProvinceRasterBmp(bitmapPath, definitionPath,
                                                   raster, error)) {
                 std::cout << "Falha na importação: " << error << "\n";
                 continue;
+            }
+
+            eulite::ProvinceContourData contours;
+            if (!svgPath.empty()) {
+                if (!eulite::extractProvinceContours(raster, contours, error) ||
+                    !eulite::writeProvinceContoursSvg(contours, raster.width,
+                                                       raster.height, svgPath, error)) {
+                    std::cout << "Falha ao gerar polígonos: " << error << "\n";
+                    continue;
+                }
             }
 
             std::ofstream adjacencyOutput(outputPath);
@@ -121,7 +133,13 @@ int main(int argc, char* argv[]) {
             std::cout << "Raster importado: " << raster.width << "x" << raster.height
                       << " | Províncias: " << raster.provincePixelCounts.size()
                       << " | Fronteiras: " << raster.boundaries.size()
-                      << " | Arquivo: " << outputPath << "\n";
+                      << " | Arquivo: " << outputPath;
+            if (!svgPath.empty()) {
+                std::cout << " | Anéis: " << contours.totalRingCount
+                          << " | Vértices: " << contours.totalVertexCount
+                          << " | SVG: " << svgPath;
+            }
+            std::cout << "\n";
         } else if (command == "tick") {
             int months = 1;
             if (input >> months && months < 0) {

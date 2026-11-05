@@ -45,10 +45,10 @@ Cores RGB ausentes nas definições causam erro com a primeira coordenada proble
 ## Uso pela CLI
 
 ```text
-import-map provinces.bmp definition.csv generated-adjacencies.csv
+import-map provinces.bmp definition.csv generated-adjacencies.csv [province-map.svg]
 ```
 
-O comando gera um CSV `province_a,province_b` com as fronteiras detectadas. Ele não substitui automaticamente `data/adjacencies.csv` nem modifica o mundo carregado.
+O comando gera um CSV `province_a,province_b` com as fronteiras detectadas. Se o quarto argumento for informado, também extrai os polígonos e grava um SVG plano com as províncias coloridas. O SVG usa preenchimento `evenodd`, preservando buracos. O comando não substitui automaticamente `data/adjacencies.csv` nem modifica o mundo carregado.
 
 ## Complexidade
 
@@ -56,12 +56,23 @@ O comando gera um CSV `province_a,province_b` com as fronteiras detectadas. Ele 
 - Extração de fronteiras: O(W × H) esperado com conjunto hash de pares.
 - Memória principal: um uint32 por pixel, mais a linha BMP, contagens e conjunto de fronteiras.
 
-A matriz ocupa aproximadamente 4 bytes por pixel. Um raster de 10 milhões de pixels usa cerca de 40 MB só para IDs, sem contar estruturas auxiliares.
+A matriz ocupa aproximadamente 4 bytes por pixel. Um raster de 10 milhões de pixels usa cerca de 40 MB só para IDs, sem contar estruturas auxiliares. A extração vetorial adiciona memória proporcional ao comprimento total das fronteiras, não cria um vértice para cada pixel interno.
+
+## Contornos vetoriais implementados
+
+`extractProvinceContours` transforma a matriz de IDs em anéis vetoriais por província:
+- Fronteiras seguem as arestas exatas dos pixels; nenhuma interpolação altera a forma.
+- Componentes desconectados são mantidos como anéis separados, permitindo províncias com ilhas.
+- Buracos internos são identificados pela orientação do anel (`isHole`).
+- Vértices colineares são removidos sem alterar a geometria ortogonal.
+- A saída é ordenada por ID de província para facilitar testes e serialização determinística.
+- A função valida dimensões e preserva a saída anterior em caso de falha.
+
+Os pontos usam coordenadas do raster, com origem no canto superior esquerdo. O ponto de fechamento não é repetido no vetor.
 
 ## Próximos passos
 
-1. Gerar máscaras e contornos por província.
-2. Converter contornos em polígonos simplificados e validar topologia.
-3. Importar terrain/climate/positions e relacionar metadados aos IDs.
-4. Criar índices espaciais e viewport 2D com seleção por pixel.
-5. Integrar o raster ao renderizador sem misturar dados gráficos com o estado da simulação.
+1. Adicionar validação topológica e associação de buracos ao contorno externo correto.
+2. Importar terrain/climate/positions e relacionar metadados aos IDs.
+3. Criar índices espaciais e viewport 2D com seleção por pixel.
+4. Integrar o raster ao renderizador sem misturar dados gráficos com o estado da simulação.

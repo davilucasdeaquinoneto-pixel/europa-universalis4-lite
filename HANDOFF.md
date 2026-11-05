@@ -82,7 +82,7 @@ O cenário de demonstração contém um continente, três regiões, quatro sub-r
 
 ## Importador inicial de raster de províncias
 
-Branch integrada à `main` via PR #5
+Integrado à `main` via PR #5.
 
 Arquivos:
 - `include/map/ProvinceRaster.hpp`
@@ -97,9 +97,30 @@ Implementação:
 4. Validação de cores duplicadas, IDs duplicados e pixels sem definição.
 5. Geração de matriz de IDs top-down, contagem de pixels por província e fronteiras únicas determinísticas.
 6. ID 0 é ignorado por padrão como fundo/oceano, mas pode ser mantido pela API.
-7. CLI: `import-map provinces.bmp definition.csv borders.csv`, que exporta um CSV de fronteiras sem alterar o mundo carregado.
+7. CLI gera CSV de fronteiras sem alterar o mundo carregado.
 
-**Limitações:** ainda não cria polígonos, não importa terrain/climate/positions, não suporta PNG/JPEG/BMP comprimido ou paletas indexadas, e não substitui automaticamente os dados do cenário. O usuário ainda não forneceu os assets locais do mapa; nenhum mapa histórico foi importado.
+Limitações do importador: não suporta PNG/JPEG, BMP comprimido ou paletas indexadas. O usuário ainda não forneceu os assets locais do mapa; nenhum mapa histórico foi importado.
+
+## Extração de polígonos vetoriais
+
+Branch atual: `feature/province-polygon-contours`, PR #6.
+
+Arquivos:
+- `include/map/ProvinceContours.hpp`
+- `src/ProvinceContours.cpp`
+- `tests/TestProvinceContours.cpp`
+
+Implementação:
+1. Converte limites entre IDs de pixels em arestas direcionadas por província.
+2. Costura arestas em anéis fechados, mantendo o interior à direita.
+3. Separa componentes desconectados (ilhas) e classifica buracos pela orientação.
+4. Remove apenas vértices colineares, sem arredondar ou deslocar fronteiras.
+5. Ordena polígonos por ID e preserva o resultado anterior se a entrada for inválida.
+6. Exporta SVG plano com preenchimento even-odd, mantendo buracos transparentes.
+7. CLI: `import-map provinces.bmp definition.csv borders.csv [mapa.svg]`.
+8. Testa retângulos, forma em L, ilha desconectada, buraco interno, exportação SVG e dimensões inconsistentes.
+
+A saída ainda usa coordenadas de pixel. Não há simplificação com tolerância, associação explícita de cada buraco ao seu polígono externo, exportação GeoJSON ou renderização interativa.
 
 ## Referências técnicas examinadas
 
@@ -127,7 +148,7 @@ Não presumir que funções, defines, formatos ou regras do EU5 se aplicam ao EU
 
 ## Próxima sequência obrigatória
 
-1. Gerar contornos e polígonos simplificados a partir dos limites de província.
+1. Validar topologia dos anéis e associar buracos ao componente externo correto.
 2. Importar terrain/climate/positions e relacioná-los aos IDs.
 3. Criar viewport 2D interativo com pan/zoom, camadas e seleção por ID.
 4. Evoluir o terreno para 2.5D com heightmap e câmera orbital leve.
