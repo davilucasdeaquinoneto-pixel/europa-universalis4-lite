@@ -48,6 +48,8 @@ public:
     double developmentOf(const std::string& tag) const;
 
 private:
+    bool loadUnchecked(const std::string& dataDirectory, std::string& error);
+
     std::vector<Region> regions_;
     std::vector<Province> provinces_;
     std::vector<Country> countries_;
