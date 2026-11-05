@@ -37,7 +37,7 @@ Isso não valida automaticamente a branch de pesquisa abaixo.
 4. **Testes novos:** cabeçalho com BOM e preservação do mundo depois de uma carga inválida.
 5. **Auditoria técnica:** `docs/REVERSE_ENGINEERING_AUDIT.md` documenta as fontes, os subsistemas, a arquitetura proposta e as prioridades de integração.
 
-**Status:** alterações enviadas à branch; CI desta branch ainda precisa ser executada e verificada. Não declarar build/test aprovados antes de observar o resultado.
+**Status:** PR #2 foi integrado à `main`. GitHub Actions run 42081910845 passou em Ubuntu e Windows (Configure, Build e Test).
 
 ## O que os projetos de referência realmente oferecem
 
