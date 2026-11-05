@@ -228,7 +228,7 @@ bool World::loadUnchecked(const std::string& dataDirectory, std::string& error) 
         lineNumber = 1;
         while (std::getline(geographyFile, line)) {
             ++lineNumber;
-            if (line.empty() || line == "\\r") continue;
+            if (line.empty() || line == "\r") continue;
             if (!readCsvFields(line, fields) || fields.size() != 4) {
                 error = "CSV inválido em geography.csv na linha " + std::to_string(lineNumber);
                 return false;
@@ -359,6 +359,58 @@ bool World::loadUnchecked(const std::string& dataDirectory, std::string& error) 
         provinces_.push_back(province);
     }
 
+    if (!continents_.empty()) {
+        std::ifstream provinceAreasFile(dataDirectory + "/province_areas.csv");
+        if (!provinceAreasFile ||
+            !std::getline(provinceAreasFile, line) ||
+            !readCsvFields(line, fields, true) ||
+            fields != std::vector<std::string>{"province_id", "area_id"}) {
+            error = "geography.csv exige province_areas.csv com cabeçalho válido.";
+            return false;
+        }
+
+        std::unordered_set<int> mappedProvinceIds;
+        lineNumber = 1;
+        while (std::getline(provinceAreasFile, line)) {
+            ++lineNumber;
+            if (line.empty() || line == "\r") continue;
+            if (!readCsvFields(line, fields) || fields.size() != 2) {
+                error = "CSV inválido em province_areas.csv na linha " +
+                        std::to_string(lineNumber);
+                return false;
+            }
+            int provinceId = 0;
+            int areaId = 0;
+            if (!parseInt(fields[0], provinceId) || !parseInt(fields[1], areaId) ||
+                !mappedProvinceIds.insert(provinceId).second) {
+                error = "Mapeamento de área inválido ou duplicado na linha " +
+                        std::to_string(lineNumber);
+                return false;
+            }
+            auto province = std::find_if(provinces_.begin(), provinces_.end(),
+                [provinceId](const Province& value) { return value.id == provinceId; });
+            auto area = std::find_if(areas_.begin(), areas_.end(),
+                [areaId](const Area& value) { return value.id == areaId; });
+            if (province == provinces_.end() || area == areas_.end()) {
+                error = "Mapeamento aponta para província ou área inexistente na linha " +
+                        std::to_string(lineNumber);
+                return false;
+            }
+            auto subregion = std::find_if(subregions_.begin(), subregions_.end(),
+                [area](const Subregion& value) { return value.id == area->subregionId; });
+            if (subregion == subregions_.end() || subregion->regionId != province->regionId) {
+                error = "Área e província pertencem a regiões incompatíveis: " + province->name;
+                return false;
+            }
+            province->areaId = areaId;
+        }
+
+        if (mappedProvinceIds.size() != provinces_.size()) {
+            error = "Toda província precisa estar associada a uma área em province_areas.csv.";
+            return false;
+        }
+    }
+
     std::ifstream adjacencyFile(dataDirectory + "/adjacencies.csv");
     if (!adjacencyFile) {
         error = "Não foi possível abrir adjacencies.csv em " + dataDirectory;
@@ -413,6 +465,68 @@ bool World::loadUnchecked(const std::string& dataDirectory, std::string& error) 
         }
         provinces_[indexA->second].adjacentProvinceIds.push_back(provinceB);
         provinces_[indexB->second].adjacentProvinceIds.push_back(provinceA);
+        connections_.push_back({provinceA, provinceB, ConnectionType::Land, false});
+    }
+
+    // Optional typed links extend the legacy land-adjacency file.
+    std::ifstream typedConnectionsFile(dataDirectory + "/connections.csv");
+    if (typedConnectionsFile) {
+        if (!std::getline(typedConnectionsFile, line) ||
+            !readCsvFields(line, fields, true) ||
+            fields != std::vector<std::string>{"province_a", "province_b", "type", "one_way"}) {
+            error = "Cabeçalho inválido em connections.csv.";
+            return false;
+        }
+
+        std::unordered_set<std::string> typedKeys;
+        for (const auto& connection : connections_) {
+            const int low = std::min(connection.provinceA, connection.provinceB);
+            const int high = std::max(connection.provinceA, connection.provinceB);
+            typedKeys.insert(std::to_string(low) + ":" + std::to_string(high) + ":land");
+        }
+
+        lineNumber = 1;
+        while (std::getline(typedConnectionsFile, line)) {
+            ++lineNumber;
+            if (line.empty() || line == "\r") continue;
+            if (!readCsvFields(line, fields) || fields.size() != 4) {
+                error = "CSV inválido em connections.csv na linha " +
+                        std::to_string(lineNumber);
+                return false;
+            }
+
+            int provinceA = 0;
+            int provinceB = 0;
+            int oneWayValue = 0;
+            ConnectionType type;
+            if (!parseInt(fields[0], provinceA) || !parseInt(fields[1], provinceB) ||
+                !parseConnectionType(fields[2], type) ||
+                !parseInt(fields[3], oneWayValue) ||
+                (oneWayValue != 0 && oneWayValue != 1) ||
+                provinceA == provinceB || provinceIds.count(provinceA) == 0 ||
+                provinceIds.count(provinceB) == 0) {
+                error = "Conexão inválida em connections.csv na linha " +
+                        std::to_string(lineNumber);
+                return false;
+            }
+
+            const int low = std::min(provinceA, provinceB);
+            const int high = std::max(provinceA, provinceB);
+            const std::string key = std::to_string(low) + ":" +
+                                    std::to_string(high) + ":" + fields[2];
+            if (!typedKeys.insert(key).second) {
+                error = "Conexão duplicada em connections.csv na linha " +
+                        std::to_string(lineNumber);
+                return false;
+            }
+
+            const bool oneWay = oneWayValue == 1;
+            connections_.push_back({provinceA, provinceB, type, oneWay});
+            const auto indexA = provinceIndexById.at(provinceA);
+            const auto indexB = provinceIndexById.at(provinceB);
+            provinces_[indexA].adjacentProvinceIds.push_back(provinceB);
+            if (!oneWay) provinces_[indexB].adjacentProvinceIds.push_back(provinceA);
+        }
     }
 
     if (countries_.empty() || regions_.empty() || provinces_.empty()) {
