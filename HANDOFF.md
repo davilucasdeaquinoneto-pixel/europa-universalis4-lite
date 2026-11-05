@@ -88,6 +88,26 @@ Arquivos:
 - `include/map/ProvinceRaster.hpp`
 - `src/ProvinceRaster.cpp`
 - `tests/TestProvinceRaster.cpp`
+
+## Extração de polígonos vetoriais
+
+Branch atual: `feature/province-polygon-contours`
+
+Arquivos:
+- `include/map/ProvinceContours.hpp`
+- `src/ProvinceContours.cpp`
+- `tests/TestProvinceContours.cpp`
+
+Implementação:
+1. Converte limites entre IDs de pixels em arestas direcionadas por província.
+2. Costura arestas em anéis fechados, mantendo interior à direita.
+3. Separa componentes desconectados (ilhas) e classifica buracos pela orientação.
+4. Remove apenas vértices colineares, sem arredondar ou deslocar fronteiras.
+5. Ordena polígonos por ID e preserva o resultado anterior se a entrada for inválida.
+6. Testa retângulos, forma em L, ilha desconectada, buraco interno e dimensões inconsistentes.
+
+A saída ainda é geometria em coordenadas de pixel. Não há simplificação com tolerância, associação explícita de cada buraco ao seu polígono externo, exportação GeoJSON ou renderização interativa.
+
 - `docs/PROVINCE_RASTER_IMPORT.md`
 
 Implementação:
@@ -127,12 +147,13 @@ Não presumir que funções, defines, formatos ou regras do EU5 se aplicam ao EU
 
 ## Próxima sequência obrigatória
 
-1. Gerar contornos e polígonos simplificados a partir dos limites de província.
-2. Importar terrain/climate/positions e relacioná-los aos IDs.
-3. Criar viewport 2D interativo com pan/zoom, camadas e seleção por ID.
-4. Evoluir o terreno para 2.5D com heightmap e câmera orbital leve.
-5. Implementar save/load versionado, RNG com seed e replay.
-6. Desenvolver economia, população agregada, bens, mercados, diplomacia, tecnologia, exércitos, guerra e IA.
+1. Validar topologia dos anéis e associar buracos ao componente externo correto.
+2. Exportar os polígonos para GeoJSON/SVG para inspeção visual.
+3. Importar terrain/climate/positions e relacioná-los aos IDs.
+4. Criar viewport 2D interativo com pan/zoom, camadas e seleção por ID.
+5. Evoluir o terreno para 2.5D com heightmap e câmera orbital leve.
+6. Implementar save/load versionado, RNG com seed e replay.
+7. Desenvolver economia, população agregada, bens, mercados, diplomacia, tecnologia, exércitos, guerra e IA.
 
 ## Regras para assistentes futuros
 
