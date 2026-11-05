@@ -4,7 +4,7 @@ Projeto independente de grande estratégia inspirado no gênero Europa Universal
 
 ## Estado atual
 
-**Versão 0.3.0-dev - fundação do modelo geográfico**
+**Versão 0.4.0-dev - importador inicial de raster de províncias**
 
 - Calendário mensal iniciado em 11/11/1444.
 - Países, continentes, regiões, sub-regiões, áreas e províncias carregados por CSV.
@@ -17,7 +17,9 @@ Projeto independente de grande estratégia inspirado no gênero Europa Universal
 - Testes de regressão para entradas CSV inválidas e preservação do mundo em falha de carga.
 - **Primeiro mapa isométrico 2.5D exportado para SVG**, sem dependência gráfica externa.
 - Layout visual separado dos dados de simulação em `data/map_layout.csv`.
-- Testes de hierarquia geográfica, passabilidade direcional e preservação transacional do mundo.
+- Importador C++17 de raster BMP 24/32-bit com definição RGB exata.
+- Extração de fronteiras únicas e contagem de pixels por província.
+- Testes de raster bottom-up/top-down, padding BMP, cores ausentes e preservação do resultado em falha.
 
 O cenário geográfico atual ainda usa dez províncias fictícias de demonstração. Ele valida projeção isométrica, extrusão visual, cores por país, rótulos e exportação. **Não é o mapa histórico da Europa e ainda não é um renderizador 3D interativo.**
 
@@ -49,6 +51,7 @@ No Windows, execute `build/europa-lite.exe`. Rode o programa a partir da raiz do
 | `save campanha.eu4lite` | Salva o estado atual |
 | `map` | Gera `mapa-demo.svg` na pasta atual |
 | `map europa.svg` | Gera o mapa com outro nome |
+| `import-map provinces.bmp definition.csv borders.csv` | Extrai fronteiras de um raster e grava CSV |
 | `quit` | Encerra |
 
 O SVG pode ser aberto em um navegador. O layout aceita as colunas `province_id,grid_x,grid_y,elevation`; coordenadas são posições de apresentação em uma grade isométrica, não latitude/longitude.
@@ -61,17 +64,19 @@ O SVG pode ser aberto em um navegador. O layout aceita as colunas `province_id,g
 - `tests/`: testes automatizados.
 - `docs/ARCHITECTURE.md`: decisões arquiteturais.
 - `docs/GEOGRAPHY_DATA_FORMAT.md`: formatos CSV da hierarquia e conexões geográficas.
+- `docs/PROVINCE_RASTER_IMPORT.md`: formatos BMP/definition.csv e pipeline de importação.
 - `docs/REVERSE_ENGINEERING_AUDIT.md`: auditoria de referências técnicas.
 - `docs/MAP_RENDERING_RESEARCH.md`: pesquisa complementar de engines isométricas e ferramentas de mapa.
 - `HANDOFF.md`: estado técnico e instruções de continuidade.
 
 ## Próximas etapas
 
-1. Implementar o importador de raster RGB -> ID e derivação de fronteiras/polígonos.
-2. Trocar o cenário fictício por dados geográficos próprios ou fornecidos legalmente pelo usuário.
-3. Criar viewport interativo 2D com pan, zoom, camadas e seleção por ID.
-4. Evoluir a apresentação para terreno 2.5D com câmera, iluminação e relevo real.
-5. Só depois avaliar um renderizador 3D mais completo.
+1. Gerar máscaras e polígonos simplificados a partir das fronteiras extraídas.
+2. Importar terreno, clima e posições e relacioná-los aos IDs.
+3. Trocar o cenário fictício por dados geográficos próprios ou fornecidos legalmente pelo usuário.
+4. Criar viewport interativo 2D com pan, zoom, camadas e seleção por ID.
+5. Evoluir a apresentação para terreno 2.5D com câmera, iluminação e relevo real.
+6. Só depois avaliar um renderizador 3D mais completo.
 
 ## Princípios
 
