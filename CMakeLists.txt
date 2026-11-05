@@ -19,5 +19,17 @@ else()
     target_compile_options(europa-lite PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
-# Keep runtime data beside the executable in the build directory.
 file(COPY data DESTINATION ${CMAKE_BINARY_DIR})
+
+include(CTest)
+if(BUILD_TESTING)
+    add_executable(europa-lite-tests
+        tests/TestCore.cpp
+        src/World.cpp
+    )
+    target_include_directories(europa-lite-tests PRIVATE include)
+    target_compile_definitions(europa-lite-tests PRIVATE
+        EULITE_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+    )
+    add_test(NAME core-tests COMMAND europa-lite-tests)
+endif()
