@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
@@ -24,6 +25,7 @@ struct ProjectedProvince {
     double x = 0.0;
     double y = 0.0;
     double depth = 0.0;
+    double sortKey = 0.0;
 };
 
 bool parseLayoutRow(const std::string& line, LayoutPoint& point) {
@@ -173,7 +175,7 @@ bool writeMapPreviewSvg(const World& world,
                          point.elevation * 7.0;
         const double depth = 12.0 + point.elevation * 2.0;
 
-        projected.push_back({&province, x, y, depth});
+        projected.push_back({&province, x, y, depth, point.gridX + point.gridY});
         if (!province.ownerTag.empty()) ownerTags.insert(province.ownerTag);
 
         const double left = x - halfWidth;
@@ -197,7 +199,7 @@ bool writeMapPreviewSvg(const World& world,
 
     std::stable_sort(projected.begin(), projected.end(),
         [](const ProjectedProvince& a, const ProjectedProvince& b) {
-            return (a.x + a.y) < (b.x + b.y);
+            return a.sortKey < b.sortKey;
         });
 
     constexpr double margin = 72.0;
@@ -265,9 +267,11 @@ bool writeMapPreviewSvg(const World& world,
                << xmlEscape(province.ownerTag) << " • " << province.id << "</text>\n";
     }
 
+    std::vector<std::string> sortedOwnerTags(ownerTags.begin(), ownerTags.end());
+    std::sort(sortedOwnerTags.begin(), sortedOwnerTags.end());
     double legendX = 30.0;
     const double legendY = height - 25.0;
-    for (const auto& tag : ownerTags) {
+    for (const auto& tag : sortedOwnerTags) {
         const Country* country = world.findCountry(tag);
         output << "<rect x=\"" << legendX << "\" y=\"" << legendY - 9.0
                << "\" width=\"10\" height=\"10\" rx=\"2\" fill=\""
