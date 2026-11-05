@@ -56,4 +56,4 @@ No Windows, execute `build/europa-lite.exe`. Rode o programa a partir da raiz do
 
 A simulação não depende da renderização. O projeto não reutiliza código, mapas, imagens, textos ou outros recursos proprietários de jogos comerciais. O conteúdo histórico será criado a partir de fontes permitidas e dados próprios.
 
-Consulte [HANDOFF.md](HANDOFF.md) antes de continuar o desenvolvimento.
+Consulte [HANDOFF.md](HANDOFF.md) antes de continuar o desenvolvimento.\n\nA auditoria dos subsistemas e o plano de engenharia reversa estão em [docs/REVERSE_ENGINEERING_AUDIT.md](docs/REVERSE_ENGINEERING_AUDIT.md).
