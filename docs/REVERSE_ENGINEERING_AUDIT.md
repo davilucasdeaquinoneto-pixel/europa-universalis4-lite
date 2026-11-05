@@ -8,7 +8,7 @@
 
 O objetivo é transformar os projetos de referência em decisões técnicas para o nosso próprio motor: quais dados extrair, quais arquiteturas adotar, quais algoritmos reimplementar e quais componentes não fazem sentido integrar.
 
-Esta é a primeira auditoria técnica consolidada, não uma declaração de que cada linha de cada repositório foi revisada. O catálogo do EU5 Engine Atlas anuncia 21.328 registros, mas o arquivo completo `catalogue.json` não foi disponibilizado pelo endpoint de leitura usado nesta inspeção. Foram examinados os totais publicados, o modelo de confiança, os documentos CURATED/VERIFIED/CATALOGUE/DEFINES_STATUS/BACKLOG, os oito guias do `task_map.json`, além de arquivos centrais do parser, extrator de assets e renderizador de mapas. A análise linha a linha de todos os 21.328 registros permanece uma tarefa separada e não deve ser confundida com a análise de arquitetura aqui documentada.
+O arquivo completo `catalogue.json` foi obtido pelo objeto Git (12,4 MB) e os 21.332 registros foram processados programaticamente: contagem por tipo, estado de confiança, famílias, escopos, fontes de tipagem e buscas temáticas. Também foram examinados CURATED/VERIFIED/CATALOGUE/DEFINES_STATUS/BACKLOG, os oito guias de `task_map.json` e arquivos centrais do parser, extrator de assets e renderizador. Isso cobre o inventário e a análise estrutural de todos os registros, mas não equivale a uma interpretação manual linha por linha de cada comportamento ou função GUI.
 
 ## 2. Fontes examinadas
 
@@ -21,19 +21,59 @@ Esta é a primeira auditoria técnica consolidada, não uma declaração de que 
 
 ## 3. EU5 Engine Atlas: o que são os 21.328 registros
 
-O Atlas não é um motor de jogo pronto. É um inventário de funcionalidades registradas no executável do EU5, complementado por documentação, extração estática e testes dentro do jogo. Os números publicados no catálogo são:
+O Atlas não é um motor de jogo pronto. É um inventário de funcionalidades registradas no executável do EU5, complementado por documentação, extração estática e testes dentro do jogo. Os números efetivamente presentes no `catalogue.json` processado são:
 
 | Registro | Quantidade | O que representa |
 |---|---:|---|
-| Effects | 553 | Operações que scripts podem executar |
-| Triggers | 1.270 | Condições consultáveis por scripts |
+| Effects | 555 | Operações que scripts podem executar |
+| Triggers | 1.272 | Condições consultáveis por scripts |
 | Scope links | 283 | Transições entre contextos de país, localização, guerra etc. |
 | List-type bases | 485 | Tipos/famílias de listas expostos ao sistema de scripts |
 | GUI functions | 15.762 | Funções de dados acessíveis à interface |
 | Defines | 2.975 | Parâmetros configuráveis registrados pelo motor |
-| **Total** | **21.328** | Registros catalogados |
+| **Total** | **21.332** | Registros catalogados |
 
 A documentação explica que as 15.762 funções GUI combinam 10.828 extraídas do binário e outras 4.934 obtidas do dump de tipos do próprio jogo. Existem ainda mais de 19 mil associações tipadas. Portanto, não se deve somar essas associações ao total de registros.
+
+**Divergência encontrada:** o texto explicativo de `CATALOGUE.md` ainda informa 21.328 itens, 553 effects e 1.270 triggers, mas o JSON publicado contém `meta.items_total = 21.332` e as contagens por estado somam 555 effects e 1.272 triggers. Para esta auditoria, os dados efetivamente processados do JSON prevalecem sobre os números desatualizados da prosa.
+
+### 3.0 Resultado do processamento integral
+
+| Tipo | Total | Vanilla | Confirmados | Reais, não totalmente provados | Aceitos | Registrados | Inferidos | Mortos |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Effects | 555 | 516 | 9 | 30 | 0 | 0 | 0 | 0 |
+| Triggers | 1.272 | 1.133 | 10 | 129 | 0 | 0 | 0 | 0 |
+| Scope links | 283 | 231 | 6 | 0 | 45 | 1 | 0 | 0 |
+| List types | 485 | 253 | 4 | 0 | 4 | 3 | 221 | 0 |
+| GUI functions | 15.762 | 6.523 | 578 | 0 | 0 | 8.661 | 0 | 0 |
+| Defines | 2.975 | 2.888 | 0 | 0 | 22 | 64 | 0 | 1 |
+| **Total** | **21.332** | **11.544** | **607** | **159** | **71** | **8.729** | **221** | **1** |
+
+O conjunto contém 12.310 itens em estados `vanilla`, `confirmed_working` ou `verified_real`; os demais ainda exigem cautela, teste ou confirmação. Isso não significa que os 12.310 sejam código portável: muitos são nomes de funções de script ou funções GUI específicas do EU5.
+
+O campo `undocumented` marca itens ausentes dos arquivos vanilla, não funcionalidades secretas automaticamente úteis. O total por tipo foi: 34 effects, 135 triggers, 52 scope links, 232 list types, 4.305 GUI functions e 87 defines.
+
+As funções GUI têm 27.274 associações de tipo registradas: 24.912 vindas do dump de tipos, 2.181 inferidas por adjacência com precisão indicada de aproximadamente 80% e 181 observadas em arquivos GUI vanilla. Essas associações não são funções adicionais.
+
+### 3.0.1 Busca temática sobre o inventário
+
+As buscas abaixo são filtros por nomes/identificadores, não categorias oficiais exclusivas. Um item pode aparecer em mais de uma busca.
+
+| Tema | Itens effect/trigger/scope/list encontrados | Em estado de alta confiança* |
+|---|---:|---:|
+| Economia | 247 | 228 |
+| População e sociedade | 172 | 152 |
+| Geografia e controle | 310 | 280 |
+| Diplomacia | 147 | 133 |
+| Militar | 180 | 161 |
+| IA | 53 | 49 |
+| Variáveis, eventos e lógica de script | 118 | 114 |
+
+*Alta confiança aqui significa `vanilla`, `verified_real` ou `confirmed_working`. A classificação por palavra-chave pode produzir falsos positivos e não substitui a leitura do item.
+
+Os blocos de defines mais numerosos incluem `NAI` (751), `NDiplomacy` (338), `NMapColors` (231), `NCountry` (120), `NEconomy` (104), `NGameIcons` (101), `NGraphics` (93) e `NCombat` (79). Isso mostra a extensão da superfície de configuração, mas não prova que cada define esteja ativo.
+
+Os escopos mais frequentes entre atributos indexados incluem country (389 ocorrências), location (162), character (75), religion (42), unit (40), province (39), market (19), pop (16), culture (15) e area (11). As contagens representam ocorrências de atributos, não quantidade de entidades no jogo.
 
 ### 3.1 Confiança das descobertas
 
