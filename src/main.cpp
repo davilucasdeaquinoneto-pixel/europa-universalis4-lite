@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
         } else if (command == "import-map") {
             std::string bitmapPath, definitionPath, outputPath;
             if (!(input >> bitmapPath >> definitionPath >> outputPath)) {
-                std::cout << "Uso: import-map provinces.bmp definition.csv adjacencies.csv\\n";
+                std::cout << "Uso: import-map provinces.bmp definition.csv adjacencies.csv\n";
                 continue;
             }
 
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
                 std::cout << "Não foi possível criar " << outputPath << "\n";
                 continue;
             }
-            adjacencyOutput << "province_a,province_b\\n";
+            adjacencyOutput << "province_a,province_b\n";
             for (const auto& boundary : raster.boundaries) {
                 adjacencyOutput << boundary.provinceA << ','
                                 << boundary.provinceB << "\n";
