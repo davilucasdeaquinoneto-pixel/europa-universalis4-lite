@@ -547,8 +547,23 @@ const Country* World::findCountry(const std::string& tag) const {
     return nullptr;
 }
 
+const Continent* World::findContinent(int id) const {
+    for (const auto& continent : continents_) if (continent.id == id) return &continent;
+    return nullptr;
+}
+
 const Region* World::findRegion(int id) const {
     for (const auto& region : regions_) if (region.id == id) return &region;
+    return nullptr;
+}
+
+const Subregion* World::findSubregion(int id) const {
+    for (const auto& subregion : subregions_) if (subregion.id == id) return &subregion;
+    return nullptr;
+}
+
+const Area* World::findArea(int id) const {
+    for (const auto& area : areas_) if (area.id == id) return &area;
     return nullptr;
 }
 
@@ -558,10 +573,21 @@ const Province* World::findProvince(int id) const {
 }
 
 bool World::areAdjacent(int provinceA, int provinceB) const {
-    const Province* province = findProvince(provinceA);
-    if (!province) return false;
-    for (const int neighborId : province->adjacentProvinceIds) {
-        if (neighborId == provinceB) return true;
+    for (const auto& connection : connections_) {
+        if ((connection.provinceA == provinceA && connection.provinceB == provinceB) ||
+            (connection.provinceA == provinceB && connection.provinceB == provinceA)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool World::hasPassableConnection(int provinceA, int provinceB) const {
+    for (const auto& connection : connections_) {
+        if (connection.type == ConnectionType::Impassable) continue;
+        if (connection.provinceA == provinceA && connection.provinceB == provinceB) return true;
+        if (!connection.oneWay && connection.provinceA == provinceB &&
+            connection.provinceB == provinceA) return true;
     }
     return false;
 }
