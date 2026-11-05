@@ -34,6 +34,7 @@ Leia também:
 - PR #3 (`feature/first-isometric-map-preview`) foi integrado à `main` após a CI `Build and test` concluir com sucesso.
 - PR #4 (`feature/geography-model-foundation`) foi integrado à `main`; a CI passou em Ubuntu e Windows.
 - PR #5 (`feature/province-raster-importer`) foi integrado à `main`; a CI passou em Ubuntu e Windows.
+- PR #6 (`feature/province-polygon-contours`) foi integrado à `main`; a CI passou em Ubuntu e Windows.
 
 ## Primeiro mapa isométrico
 
@@ -103,7 +104,7 @@ Limitações do importador: não suporta PNG/JPEG, BMP comprimido ou paletas ind
 
 ## Extração de polígonos vetoriais
 
-Branch atual: `feature/province-polygon-contours`, PR #6.
+Integrado à `main` via PR #6.
 
 Arquivos:
 - `include/map/ProvinceContours.hpp`
