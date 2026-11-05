@@ -1,5 +1,6 @@
 #include "world/World.hpp"
 
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 #include <unordered_set>
