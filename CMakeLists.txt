@@ -10,6 +10,7 @@ add_executable(europa-lite
     src/World.cpp
     src/Game.cpp
     src/MapPreview.cpp
+    src/ProvinceRaster.cpp
 )
 
 target_include_directories(europa-lite PRIVATE include)
@@ -61,4 +62,11 @@ if(BUILD_TESTING)
         EULITE_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
     )
     add_test(NAME geography-tests COMMAND europa-lite-geography-tests)
+
+    add_executable(europa-lite-raster-tests
+        tests/TestProvinceRaster.cpp
+        src/ProvinceRaster.cpp
+    )
+    target_include_directories(europa-lite-raster-tests PRIVATE include)
+    add_test(NAME province-raster-tests COMMAND europa-lite-raster-tests)
 endif()
