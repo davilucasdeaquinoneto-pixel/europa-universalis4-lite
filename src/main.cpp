@@ -1,6 +1,8 @@
 #include "simulation/Game.hpp"
 #include "map/MapPreview.hpp"
+#include "map/ProvinceRaster.hpp"
 
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -51,6 +53,7 @@ int main(int argc, char* argv[]) {
                       << "provinces       - lista as províncias\n"
                       << "geography       - mostra a hierarquia geográfica\n"
                       << "connections     - lista ligações entre províncias\n"
+                      << "import-map BMP DEFINITIONS OUTPUT.csv - extrai fronteiras do raster\n"
                       << "tick [meses]    - avança o calendário (padrão: 1 mês)\n"
                       << "save [arquivo]  - salva o estado atual\n"
                       << "map [arquivo]   - gera um mapa isométrico SVG\n"
@@ -91,6 +94,34 @@ int main(int argc, char* argv[]) {
                                                                   connection.provinceB)
                               ? " | transitável" : " | bloqueada") << "\n";
             }
+        } else if (command == "import-map") {
+            std::string bitmapPath, definitionPath, outputPath;
+            if (!(input >> bitmapPath >> definitionPath >> outputPath)) {
+                std::cout << "Uso: import-map provinces.bmp definition.csv adjacencies.csv\\n";
+                continue;
+            }
+
+            eulite::ProvinceRasterData raster;
+            if (!eulite::importProvinceRasterBmp(bitmapPath, definitionPath,
+                                                  raster, error)) {
+                std::cout << "Falha na importação: " << error << "\\n";
+                continue;
+            }
+
+            std::ofstream adjacencyOutput(outputPath);
+            if (!adjacencyOutput) {
+                std::cout << "Não foi possível criar " << outputPath << "\\n";
+                continue;
+            }
+            adjacencyOutput << "province_a,province_b\\n";
+            for (const auto& boundary : raster.boundaries) {
+                adjacencyOutput << boundary.provinceA << ','
+                                << boundary.provinceB << "\\n";
+            }
+            std::cout << "Raster importado: " << raster.width << "x" << raster.height
+                      << " | Províncias: " << raster.provincePixelCounts.size()
+                      << " | Fronteiras: " << raster.boundaries.size()
+                      << " | Arquivo: " << outputPath << "\\n";
         } else if (command == "tick") {
             int months = 1;
             if (input >> months && months < 0) {
