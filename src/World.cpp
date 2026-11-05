@@ -82,15 +82,33 @@ bool parseInt(const std::string& value, int& result) {
     }
 }
 
-bool readCsvFields(const std::string& line, std::vector<std::string>& fields) {
+bool readCsvFields(const std::string& line, std::vector<std::string>& fields,
+                   bool stripBom = false) {
     std::string normalized = line;
     if (!normalized.empty() && normalized.back() == '\r') normalized.pop_back();
+    if (stripBom && normalized.size() >= 3 &&
+        static_cast<unsigned char>(normalized[0]) == 0xEF &&
+        static_cast<unsigned char>(normalized[1]) == 0xBB &&
+        static_cast<unsigned char>(normalized[2]) == 0xBF) {
+        normalized.erase(0, 3);
+    }
     return parseCsvLine(normalized, fields);
 }
 
 } // namespace
 
 bool World::load(const std::string& dataDirectory, std::string& error) {
+    World candidate;
+    if (!candidate.loadUnchecked(dataDirectory, error)) return false;
+
+    regions_.swap(candidate.regions_);
+    provinces_.swap(candidate.provinces_);
+    countries_.swap(candidate.countries_);
+    error.clear();
+    return true;
+}
+
+bool World::loadUnchecked(const std::string& dataDirectory, std::string& error) {
     regions_.clear();
     provinces_.clear();
     countries_.clear();
@@ -103,7 +121,7 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
 
     std::string line;
     std::vector<std::string> fields;
-    if (!std::getline(countryFile, line) || !readCsvFields(line, fields) ||
+    if (!std::getline(countryFile, line) || !readCsvFields(line, fields, true) ||
         fields != std::vector<std::string>{"tag", "name", "treasury", "manpower", "tax_modifier"}) {
         error = "Cabeçalho inválido em countries.csv.";
         return false;
@@ -145,7 +163,7 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
         return false;
     }
 
-    if (!std::getline(regionFile, line) || !readCsvFields(line, fields) ||
+    if (!std::getline(regionFile, line) || !readCsvFields(line, fields, true) ||
         fields != std::vector<std::string>{"id", "name"}) {
         error = "Cabeçalho inválido em regions.csv.";
         return false;
@@ -181,13 +199,14 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
         return false;
     }
 
-    if (!std::getline(provinceFile, line) || !readCsvFields(line, fields) ||
+    if (!std::getline(provinceFile, line) || !readCsvFields(line, fields, true) ||
         fields != std::vector<std::string>{"id", "name", "owner", "region_id", "development", "terrain"}) {
         error = "Cabeçalho inválido em provinces.csv.";
         return false;
     }
 
     std::unordered_set<int> provinceIds;
+    std::unordered_map<int, std::size_t> provinceIndexById;
     lineNumber = 1;
     while (std::getline(provinceFile, line)) {
         ++lineNumber;
@@ -223,6 +242,7 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
             error = "Região inexistente na província: " + province.name;
             return false;
         }
+        provinceIndexById.emplace(province.id, provinces_.size());
         provinces_.push_back(province);
     }
 
@@ -232,7 +252,7 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
         return false;
     }
 
-    if (!std::getline(adjacencyFile, line) || !readCsvFields(line, fields) ||
+    if (!std::getline(adjacencyFile, line) || !readCsvFields(line, fields, true) ||
         fields != std::vector<std::string>{"province_a", "province_b"}) {
         error = "Cabeçalho inválido em adjacencies.csv.";
         return false;
@@ -267,10 +287,15 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
             return false;
         }
 
-        for (auto& province : provinces_) {
-            if (province.id == provinceA) province.adjacentProvinceIds.push_back(provinceB);
-            if (province.id == provinceB) province.adjacentProvinceIds.push_back(provinceA);
+        const auto indexA = provinceIndexById.find(provinceA);
+        const auto indexB = provinceIndexById.find(provinceB);
+        if (indexA == provinceIndexById.end() || indexB == provinceIndexById.end()) {
+            error = "Índice interno de províncias inconsistente na linha " +
+                    std::to_string(lineNumber);
+            return false;
         }
+        provinces_[indexA->second].adjacentProvinceIds.push_back(provinceB);
+        provinces_[indexB->second].adjacentProvinceIds.push_back(provinceA);
     }
 
     if (countries_.empty() || regions_.empty() || provinces_.empty()) {
