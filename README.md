@@ -47,6 +47,8 @@ No Windows, execute `build/europa-lite.exe`. Rode o programa a partir da raiz do
 | `help` | Lista os comandos |
 | `status` | Mostra países e economia |
 | `provinces` | Lista províncias, regiões e vizinhos |
+| `geography` | Mostra a hierarquia geográfica |
+| `connections` | Lista ligações tipadas e sua passabilidade |
 | `tick 12` | Avança 12 meses |
 | `save campanha.eu4lite` | Salva o estado atual |
 | `map` | Gera `mapa-demo.svg` na pasta atual |
