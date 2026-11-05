@@ -10,6 +10,7 @@
 
 Leia também:
 - `README.md`
+- `docs/MAP_RENDERING_RESEARCH.md`
 - `docs/ARCHITECTURE.md`
 - `docs/REVERSE_ENGINEERING_AUDIT.md`
 
@@ -56,6 +57,8 @@ Alterações:
 - `EU5 Workbench`: ferramenta de edição, busca, guias e lint, não um motor de jogo.
 - `FIFE`: referência de engine isométrica C++ multiplataforma; sua arquitetura de camadas e ordenação visual é interessante, mas não foi adicionada como dependência.
 - `opengl-terrain-demo`: referência de heightmap, normais, iluminação e texturização por altitude/inclinação; requer OpenGL 4.5 e é avançado demais para adotar diretamente agora.
+- `FIFE`: engine C++ isométrica com renderização SDL/OpenGL, camadas, múltiplas câmeras e ordenação por profundidade; usar como referência, não como dependência nesta fase.
+- `EU Toolkit`: ferramenta EU4 com camadas temáticas, edição por fila reversível, validação e preservação de chaves desconhecidas; aproveitar padrões de ferramenta, não a stack Rust/Tauri/Svelte no motor.
 
 Não presumir que funções, defines, formatos ou regras do EU5 se aplicam ao EU4 ou ao nosso motor. Guardar versão e nível de confiança de toda descoberta.
 
