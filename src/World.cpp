@@ -2,11 +2,11 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
-#include <set>
 #include <utility>
 
 namespace eulite {
@@ -259,7 +259,7 @@ bool World::loadUnchecked(const std::string& dataDirectory, std::string& error) 
         return false;
     }
 
-    std::set<std::pair<int, int>> connections;
+    std::unordered_set<std::uint64_t> connections;
     lineNumber = 1;
     while (std::getline(adjacencyFile, line)) {
         ++lineNumber;
@@ -281,8 +281,12 @@ bool World::loadUnchecked(const std::string& dataDirectory, std::string& error) 
             return false;
         }
 
-        const auto edge = std::minmax(provinceA, provinceB);
-        if (!connections.insert(edge).second) {
+        const int lowerId = std::min(provinceA, provinceB);
+        const int upperId = std::max(provinceA, provinceB);
+        const std::uint64_t edgeKey =
+            (static_cast<std::uint64_t>(static_cast<std::uint32_t>(lowerId)) << 32) |
+            static_cast<std::uint32_t>(upperId);
+        if (!connections.insert(edgeKey).second) {
             error = "Adjacência duplicada em adjacencies.csv na linha " +
                     std::to_string(lineNumber);
             return false;
