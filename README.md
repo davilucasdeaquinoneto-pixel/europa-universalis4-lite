@@ -60,6 +60,7 @@ O SVG pode ser aberto em um navegador. O layout aceita as colunas `province_id,g
 - `data/`: países, hierarquia geográfica, províncias, áreas, conexões tipadas, adjacências e layout visual.
 - `tests/`: testes automatizados.
 - `docs/ARCHITECTURE.md`: decisões arquiteturais.
+- `docs/GEOGRAPHY_DATA_FORMAT.md`: formatos CSV da hierarquia e conexões geográficas.
 - `docs/REVERSE_ENGINEERING_AUDIT.md`: auditoria de referências técnicas.
 - `docs/MAP_RENDERING_RESEARCH.md`: pesquisa complementar de engines isométricas e ferramentas de mapa.
 - `HANDOFF.md`: estado técnico e instruções de continuidade.
