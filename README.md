@@ -4,16 +4,20 @@ Projeto independente de grande estratégia inspirado no gênero Europa Universal
 
 ## Estado atual
 
-**Versão 0.1.1-dev - fortalecimento do carregador de dados**
+**Versão 0.2.0-dev - primeiro protótipo de mapa isométrico**
 
 - Calendário mensal iniciado em 11/11/1444.
 - Países, regiões e províncias carregados por CSV.
 - Fronteiras entre províncias representadas como adjacências bidirecionais.
 - Economia mensal provisória baseada em desenvolvimento e modificador tributário.
 - Terminal para avançar o tempo, consultar o mundo e salvar.
-- Parser CSV com campos entre aspas, vírgulas internas e aspas escapadas.\n- Validação de cabeçalhos e rejeição de valores numéricos não finitos.\n- Testes de regressão para entradas CSV inválidas.\n- Integração contínua configurada para Windows e Linux.
+- Parser CSV com campos entre aspas, vírgulas internas e aspas escapadas.
+- Validação de cabeçalhos e rejeição de valores numéricos não finitos.
+- Testes de regressão para entradas CSV inválidas e preservação do mundo em falha de carga.
+- **Primeiro mapa isométrico 2.5D exportado para SVG**, sem dependência gráfica externa.
+- Layout visual separado dos dados de simulação em `data/map_layout.csv`.
 
-Esta versão é uma fundação técnica, não um jogo completo. Ainda não existem mapa visual, diplomacia, guerra, comércio ou IA.
+O mapa atual usa dez províncias fictícias de demonstração. Ele valida projeção isométrica, extrusão visual, cores por país, rótulos e exportação. **Não é o mapa histórico da Europa e ainda não é um renderizador 3D interativo.**
 
 ## Tecnologias
 
@@ -41,16 +45,30 @@ No Windows, execute `build/europa-lite.exe`. Rode o programa a partir da raiz do
 | `provinces` | Lista províncias, regiões e vizinhos |
 | `tick 12` | Avança 12 meses |
 | `save campanha.eu4lite` | Salva o estado atual |
+| `map` | Gera `mapa-demo.svg` na pasta atual |
+| `map europa.svg` | Gera o mapa com outro nome |
 | `quit` | Encerra |
+
+O SVG pode ser aberto em um navegador. O layout aceita as colunas `province_id,grid_x,grid_y,elevation`; coordenadas são posições de apresentação em uma grade isométrica, não latitude/longitude.
 
 ## Estrutura
 
 - `include/`: interfaces e modelos.
-- `src/`: implementação do motor.
-- `data/`: países, regiões, províncias e adjacências em CSV.
+- `src/`: implementação do motor e exportador de mapa.
+- `data/`: países, regiões, províncias, adjacências e layout visual.
 - `tests/`: testes automatizados.
 - `docs/ARCHITECTURE.md`: decisões arquiteturais.
+- `docs/REVERSE_ENGINEERING_AUDIT.md`: auditoria de referências técnicas.
+- `docs/MAP_RENDERING_RESEARCH.md`: pesquisa complementar de engines isométricas e ferramentas de mapa.
 - `HANDOFF.md`: estado técnico e instruções de continuidade.
+
+## Próximas etapas
+
+1. Fechar o modelo geográfico e importar dados de mapa fornecidos legalmente pelo usuário.
+2. Trocar o layout demonstrativo por raster de províncias, hierarquia geográfica e conexões tipadas.
+3. Criar viewport interativo 2D com pan, zoom, camadas e seleção por ID.
+4. Evoluir a apresentação para terreno 2.5D com câmera, iluminação e relevo real.
+5. Só depois avaliar um renderizador 3D mais completo.
 
 ## Princípios
 
