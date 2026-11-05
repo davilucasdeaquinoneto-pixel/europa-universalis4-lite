@@ -83,6 +83,16 @@ bool parseInt(const std::string& value, int& result) {
     }
 }
 
+bool parseConnectionType(const std::string& value, ConnectionType& type) {
+    if (value == "land") type = ConnectionType::Land;
+    else if (value == "sea") type = ConnectionType::Sea;
+    else if (value == "strait") type = ConnectionType::Strait;
+    else if (value == "river") type = ConnectionType::River;
+    else if (value == "impassable") type = ConnectionType::Impassable;
+    else return false;
+    return true;
+}
+
 bool readCsvFields(const std::string& line, std::vector<std::string>& fields,
                    bool stripBom = false) {
     std::string normalized = line;
@@ -102,16 +112,24 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
     World candidate;
     if (!candidate.loadUnchecked(dataDirectory, error)) return false;
 
+    continents_.swap(candidate.continents_);
     regions_.swap(candidate.regions_);
+    subregions_.swap(candidate.subregions_);
+    areas_.swap(candidate.areas_);
     provinces_.swap(candidate.provinces_);
+    connections_.swap(candidate.connections_);
     countries_.swap(candidate.countries_);
     error.clear();
     return true;
 }
 
 bool World::loadUnchecked(const std::string& dataDirectory, std::string& error) {
+    continents_.clear();
     regions_.clear();
+    subregions_.clear();
+    areas_.clear();
     provinces_.clear();
+    connections_.clear();
     countries_.clear();
 
     std::ifstream countryFile(dataDirectory + "/countries.csv");
@@ -192,6 +210,100 @@ bool World::loadUnchecked(const std::string& dataDirectory, std::string& error) 
             return false;
         }
         regions_.push_back(region);
+    }
+
+    // Optional hierarchy metadata. The legacy regions.csv remains the source
+    // for region names and IDs; geography.csv adds parent relationships.
+    std::ifstream geographyFile(dataDirectory + "/geography.csv");
+    if (geographyFile) {
+        if (!std::getline(geographyFile, line) || !readCsvFields(line, fields, true) ||
+            fields != std::vector<std::string>{"type", "id", "name", "parent_id"}) {
+            error = "Cabeçalho inválido em geography.csv.";
+            return false;
+        }
+
+        std::unordered_set<int> continentIds;
+        std::unordered_set<int> subregionIds;
+        std::unordered_set<int> areaIds;
+        lineNumber = 1;
+        while (std::getline(geographyFile, line)) {
+            ++lineNumber;
+            if (line.empty() || line == "\\r") continue;
+            if (!readCsvFields(line, fields) || fields.size() != 4) {
+                error = "CSV inválido em geography.csv na linha " + std::to_string(lineNumber);
+                return false;
+            }
+
+            int id = 0;
+            int parentId = 0;
+            if (!parseInt(fields[1], id) || !parseInt(fields[3], parentId) ||
+                id <= 0 || fields[2].empty()) {
+                error = "ID, nome ou pai inválido em geography.csv na linha " +
+                        std::to_string(lineNumber);
+                return false;
+            }
+
+            if (fields[0] == "continent") {
+                if (parentId != 0 || !continentIds.insert(id).second) {
+                    error = "Continente inválido ou duplicado em geography.csv na linha " +
+                            std::to_string(lineNumber);
+                    return false;
+                }
+                continents_.push_back({id, fields[2]});
+            } else if (fields[0] == "region") {
+                auto region = std::find_if(regions_.begin(), regions_.end(),
+                    [id](const Region& value) { return value.id == id; });
+                if (region == regions_.end() || region->name != fields[2] ||
+                    region->continentId != 0) {
+                    error = "Região inexistente, duplicada ou com nome divergente em geography.csv na linha " +
+                            std::to_string(lineNumber);
+                    return false;
+                }
+                region->continentId = parentId;
+            } else if (fields[0] == "subregion") {
+                if (!subregionIds.insert(id).second) {
+                    error = "Sub-região duplicada em geography.csv na linha " +
+                            std::to_string(lineNumber);
+                    return false;
+                }
+                subregions_.push_back({id, fields[2], parentId});
+            } else if (fields[0] == "area") {
+                if (!areaIds.insert(id).second) {
+                    error = "Área duplicada em geography.csv na linha " +
+                            std::to_string(lineNumber);
+                    return false;
+                }
+                areas_.push_back({id, fields[2], parentId});
+            } else {
+                error = "Tipo geográfico desconhecido em geography.csv na linha " +
+                        std::to_string(lineNumber);
+                return false;
+            }
+        }
+
+        if (continents_.empty() || subregions_.empty() || areas_.empty()) {
+            error = "geography.csv precisa definir continentes, sub-regiões e áreas.";
+            return false;
+        }
+        for (const auto& region : regions_) {
+            if (region.continentId == 0 || continentIds.count(region.continentId) == 0) {
+                error = "Região sem continente válido: " + region.name;
+                return false;
+            }
+        }
+        for (const auto& subregion : subregions_) {
+            if (std::none_of(regions_.begin(), regions_.end(),
+                [&subregion](const Region& region) { return region.id == subregion.regionId; })) {
+                error = "Sub-região aponta para região inexistente: " + subregion.name;
+                return false;
+            }
+        }
+        for (const auto& area : areas_) {
+            if (subregionIds.count(area.subregionId) == 0) {
+                error = "Área aponta para sub-região inexistente: " + area.name;
+                return false;
+            }
+        }
     }
 
     std::ifstream provinceFile(dataDirectory + "/provinces.csv");
