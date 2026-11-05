@@ -9,6 +9,7 @@ add_executable(europa-lite
     src/main.cpp
     src/World.cpp
     src/Game.cpp
+    src/MapPreview.cpp
 )
 
 target_include_directories(europa-lite PRIVATE include)
@@ -39,4 +40,15 @@ if(BUILD_TESTING)
     )
     target_include_directories(europa-lite-validation-tests PRIVATE include)
     add_test(NAME world-validation-tests COMMAND europa-lite-validation-tests)
+
+    add_executable(europa-lite-map-tests
+        tests/TestMapPreview.cpp
+        src/World.cpp
+        src/MapPreview.cpp
+    )
+    target_include_directories(europa-lite-map-tests PRIVATE include)
+    target_compile_definitions(europa-lite-map-tests PRIVATE
+        EULITE_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+    )
+    add_test(NAME map-preview-tests COMMAND europa-lite-map-tests)
 endif()
