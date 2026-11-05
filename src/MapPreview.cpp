@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstdint>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
@@ -76,22 +75,6 @@ std::string xmlEscape(const std::string& value) {
         }
     }
     return escaped;
-}
-
-std::string countryColor(const std::string& tag) {
-    static const char* palette[] = {
-        "#bd914d", "#527da6", "#a95050", "#4e896c",
-        "#9270a8", "#b77b48", "#538d91", "#8b8e53"
-    };
-    // FNV-1a keeps political colors stable across runs and platforms.
-    std::uint64_t hash = 1469598103934665603ULL;
-    for (const unsigned char ch : tag) {
-        hash ^= ch;
-        hash *= 1099511628211ULL;
-    }
-    const std::size_t index = static_cast<std::size_t>(
-        hash % (sizeof(palette) / sizeof(palette[0])));
-    return palette[index];
 }
 
 std::string darken(const std::string& color) {
@@ -197,6 +180,18 @@ bool writeMapPreviewSvg(const World& world,
         return false;
     }
 
+    std::vector<std::string> sortedOwnerTags(ownerTags.begin(), ownerTags.end());
+    std::sort(sortedOwnerTags.begin(), sortedOwnerTags.end());
+    static const char* palette[] = {
+        "#bd914d", "#527da6", "#a95050", "#4e896c",
+        "#9270a8", "#b77b48", "#538d91", "#8b8e53"
+    };
+    std::unordered_map<std::string, std::string> ownerColors;
+    for (std::size_t i = 0; i < sortedOwnerTags.size(); ++i) {
+        ownerColors.emplace(sortedOwnerTags[i],
+            palette[i % (sizeof(palette) / sizeof(palette[0]))]);
+    }
+
     std::stable_sort(projected.begin(), projected.end(),
         [](const ProjectedProvince& a, const ProjectedProvince& b) {
             return a.sortKey < b.sortKey;
@@ -233,7 +228,7 @@ bool writeMapPreviewSvg(const World& world,
         const double x = item.x + offsetX;
         const double y = item.y + offsetY;
         const double d = item.depth;
-        const std::string top = countryColor(province.ownerTag);
+        const std::string top = ownerColors.at(province.ownerTag);
         const std::string side = darken(top);
 
         // Two visible vertical faces create the low-poly, EU3-era block-map effect.
@@ -267,15 +262,13 @@ bool writeMapPreviewSvg(const World& world,
                << xmlEscape(province.ownerTag) << " • " << province.id << "</text>\n";
     }
 
-    std::vector<std::string> sortedOwnerTags(ownerTags.begin(), ownerTags.end());
-    std::sort(sortedOwnerTags.begin(), sortedOwnerTags.end());
     double legendX = 30.0;
     const double legendY = height - 25.0;
     for (const auto& tag : sortedOwnerTags) {
         const Country* country = world.findCountry(tag);
         output << "<rect x=\"" << legendX << "\" y=\"" << legendY - 9.0
                << "\" width=\"10\" height=\"10\" rx=\"2\" fill=\""
-               << countryColor(tag) << "\"/>\n";
+               << ownerColors.at(tag) << "\"/>\n";
         output << "<text x=\"" << legendX + 15.0 << "\" y=\"" << legendY
                << "\" font-family=\"Arial,sans-serif\" font-size=\"10\" "
                << "fill=\"#26343a\">" << xmlEscape(country ? country->name : tag)
