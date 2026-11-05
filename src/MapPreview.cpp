@@ -81,8 +81,14 @@ std::string countryColor(const std::string& tag) {
         "#bd914d", "#527da6", "#a95050", "#4e896c",
         "#9270a8", "#b77b48", "#538d91", "#8b8e53"
     };
-    const std::size_t index = std::hash<std::string>{}(tag) %
-                              (sizeof(palette) / sizeof(palette[0]));
+    // FNV-1a keeps political colors stable across runs and platforms.
+    std::uint64_t hash = 1469598103934665603ULL;
+    for (const unsigned char ch : tag) {
+        hash ^= ch;
+        hash *= 1099511628211ULL;
+    }
+    const std::size_t index = static_cast<std::size_t>(
+        hash % (sizeof(palette) / sizeof(palette[0])));
     return palette[index];
 }
 
