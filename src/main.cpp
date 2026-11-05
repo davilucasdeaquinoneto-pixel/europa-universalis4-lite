@@ -65,18 +65,18 @@ int main(int argc, char* argv[]) {
                       << " | Regiões: " << world.regions().size()
                       << " | Sub-regiões: " << world.subregions().size()
                       << " | Áreas: " << world.areas().size()
-                      << " | Províncias: " << world.provinces().size() << "\\n";
+                      << " | Províncias: " << world.provinces().size() << "\n";
             for (const auto& continent : world.continents()) {
-                std::cout << "\\n" << continent.name << "\\n";
+                std::cout << "\n" << continent.name << "\n";
                 for (const auto& region : world.regions()) {
                     if (region.continentId != continent.id) continue;
-                    std::cout << "  " << region.name << "\\n";
+                    std::cout << "  " << region.name << "\n";
                     for (const auto& subregion : world.subregions()) {
                         if (subregion.regionId != region.id) continue;
-                        std::cout << "    " << subregion.name << "\\n";
+                        std::cout << "    " << subregion.name << "\n";
                         for (const auto& area : world.areas()) {
                             if (area.subregionId == subregion.id) {
-                                std::cout << "      " << area.name << "\\n";
+                                std::cout << "      " << area.name << "\n";
                             }
                         }
                     }
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
                           << (connection.oneWay ? " | sentido único" : " | bidirecional")
                           << (game.world().hasPassableConnection(connection.provinceA,
                                                                   connection.provinceB)
-                              ? " | transitável" : " | bloqueada") << "\\n";
+                              ? " | transitável" : " | bloqueada") << "\n";
             }
         } else if (command == "tick") {
             int months = 1;
