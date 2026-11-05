@@ -73,10 +73,10 @@ O CTest verifica calendário, carregamento do cenário, quantidades de entidades
 
 ## Próximos módulos
 
-1. Modelo geográfico com áreas, sub-regiões, regiões, continentes, costas e conexões tipadas.
-2. Importador de raster RGB -> ID, polígonos e dados de terreno.
-3. Viewport 2D com pan/zoom, seleção por ID e camadas temáticas.
-4. Save/load versionado e determinismo.
-5. Economia modular, população agregada, produção e mercados.
-6. Diplomacia, tecnologia, exércitos, guerra e IA.
-7. Renderização 2.5D mais completa.
+1. Extrair contornos e polígonos simplificados do raster de IDs.
+2. Importar terrain/climate/positions e associar metadados às províncias.
+3. Criar viewport 2D com pan/zoom, seleção por ID e camadas temáticas.
+4. Adicionar costas, rios, portos, estreitos e regras de navegação.
+5. Implementar save/load versionado e determinismo.
+6. Construir economia modular, população agregada, produção, mercados, diplomacia, tecnologia, exércitos, guerra e IA.
+7. Evoluir o renderer para terreno 2.5D.
