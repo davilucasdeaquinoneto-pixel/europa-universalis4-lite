@@ -4,7 +4,7 @@
 
 Repositório: https://github.com/davilucasdeaquinoneto-pixel/europa-universalis4-lite
 Branch: `main`
-Versão de trabalho: 0.1.0
+Versão de trabalho: 0.1.1-dev
 Estado: motor inicial e modelo geográfico compilam e passam nos testes em Linux e Windows via GitHub Actions.
 
 O repositório originalmente continha somente um README. A base foi iniciada do zero.
@@ -29,7 +29,7 @@ Não copiar código, mapas, imagens, textos ou outros recursos proprietários de
 - `data/regions.csv`: três regiões de teste.
 - `data/provinces.csv`: dez províncias de teste.
 - `data/adjacencies.csv`: grafo inicial de fronteiras.
-- `tests/TestCore.cpp`: testes de calendário, entidades, desenvolvimento e adjacência.
+- `tests/TestCore.cpp`: testes de calendário, entidades, desenvolvimento e adjacência.\n- `tests/TestWorldValidation.cpp`: testes de regressão do parser CSV e dados inválidos.
 - `.github/workflows/ci.yml`: compilação e testes em Linux e Windows.
 - `docs/ARCHITECTURE.md`: decisões arquiteturais.
 - `README.md`: apresentação e instruções.
@@ -68,7 +68,7 @@ No Windows, execute `build/europa-lite.exe`. Rode a partir da raiz do repositór
 - Save textual inicial.
 - Testes automatizados e CI para Ubuntu/Windows.
 
-## Validação executada
+## Trabalho atual: fortalecimento do carregador CSV (branch `hardening/data-loader-validation`)\n\n- Parser CSV com suporte a campos entre aspas, vírgulas internas e aspas escapadas.\n- Rejeição de aspas não fechadas e conteúdo inesperado após fechamento de aspas.\n- Validação explícita dos cabeçalhos dos quatro CSVs.\n- Rejeição de `NaN` e infinito em campos `double`.\n- Diagnósticos com arquivo e número da linha.\n- Novo executável de testes `europa-lite-validation-tests`, registrado no CTest.\n- Casos de regressão: campos citados, vírgulas, aspas escapadas, `NaN`, infinito, aspas malformadas, cabeçalho errado e desenvolvimento infinito.\n\n**Atenção:** essas alterações foram gravadas na branch de trabalho, mas ainda precisam ser compiladas e executadas pelo GitHub Actions. Não marcar como aprovadas até a CI terminar.\n\n## Validação executada
 
 GitHub Actions: execução mais recente do primeiro ciclo geográfico passou nos dois sistemas:
 https://github.com/davilucasdeaquinoneto-pixel/europa-universalis4-lite/actions/runs/42029385919
@@ -86,9 +86,9 @@ Testes cobrem:
 ## Limitações conhecidas
 
 - Ainda não há mapa visual nem interface SDL.
-- O parser CSV não suporta campos com vírgulas ou aspas.
+- O parser CSV agora suporta campos entre aspas, vírgulas internas e aspas escapadas (`""`).
 - Campos vazios finais precisam de tratamento específico.
-- O grafo não diferencia fronteiras terrestres, estreitos, rios ou rotas marítimas.
+- O grafo não diferencia fronteiras terrestres, estreitos, rios ou rotas marítimas.\n- A carga ainda não é transacional: se um arquivo falhar depois de outros terem sido lidos, o objeto World pode ficar parcialmente preenchido.
 - Não há carregamento de save.
 - A economia é provisória; não há produção, comércio, despesas ou manutenção.
 - Não há diplomacia, guerra, rebeliões, tecnologia, eventos ou IA.
@@ -114,4 +114,4 @@ Antes de implementar:
 - compile e execute CTest;
 - corrija falhas reais antes de adicionar sistemas.
 
-Próxima tarefa: endurecer parser e validação de dados com testes negativos; depois adicionar tipos de fronteira e áreas/sub-regiões. Em seguida, separar a economia em um módulo próprio. Atualize HANDOFF.md a cada etapa. Não afirme que compilou ou testou sem executar os comandos e observar o resultado. Preserve as alterações existentes e faça commits pequenos e descritivos.
+Próxima tarefa: confirmar CI da branch `hardening/data-loader-validation`; depois tornar o carregamento transacional e ampliar os testes negativos para IDs e referências. Só então adicionar tipos de fronteira e áreas/sub-regiões. Em seguida, separar a economia em um módulo próprio. Atualize HANDOFF.md a cada etapa. Não afirme que compilou ou testou sem executar os comandos e observar o resultado. Preserve as alterações existentes e faça commits pequenos e descritivos.
