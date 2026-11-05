@@ -4,7 +4,7 @@
 
 - Repositório: https://github.com/davilucasdeaquinoneto-pixel/europa-universalis4-lite
 - Branch principal: `main`
-- Branch atual de trabalho: `feature/geography-model-foundation`
+- Branch atual de trabalho: `feature/province-raster-importer`
 - Stack: C++17 + CMake.
 - Objetivo: motor independente de grande estratégia, com simulação desacoplada da apresentação e desempenho em hardware modesto.
 
@@ -32,6 +32,7 @@ Leia também:
 
 - PR #2 (`research/subsystem-audit-and-world-hardening`) foi integrado à `main`; a CI da etapa passou em Ubuntu e Windows.
 - PR #3 (`feature/first-isometric-map-preview`) foi integrado à `main` após a CI `Build and test` concluir com sucesso.
+- PR #4 (`feature/geography-model-foundation`) foi integrado à `main`; a CI passou em Ubuntu e Windows.
 
 ## Primeiro mapa isométrico
 
@@ -78,6 +79,27 @@ Implementação:
 
 O cenário de demonstração contém um continente, três regiões, quatro sub-regiões, seis áreas e dez províncias fictícias. Ainda não é o mapa histórico da Europa.
 
+## Importador inicial de raster de províncias
+
+Branch: `feature/province-raster-importer`
+
+Arquivos:
+- `include/map/ProvinceRaster.hpp`
+- `src/ProvinceRaster.cpp`
+- `tests/TestProvinceRaster.cpp`
+- `docs/PROVINCE_RASTER_IMPORT.md`
+
+Implementação:
+1. Leitura BMP Windows sem compressão, 24 ou 32 bits.
+2. Suporte a imagens bottom-up e top-down, incluindo padding de linha.
+3. Mapeamento RGB exato para IDs a partir de definition.csv delimitado por ponto e vírgula.
+4. Validação de cores duplicadas, IDs duplicados e pixels sem definição.
+5. Geração de matriz de IDs top-down, contagem de pixels por província e fronteiras únicas determinísticas.
+6. ID 0 é ignorado por padrão como fundo/oceano, mas pode ser mantido pela API.
+7. CLI: `import-map provinces.bmp definition.csv borders.csv`, que exporta um CSV de fronteiras sem alterar o mundo carregado.
+
+**Limitações:** ainda não cria polígonos, não importa terrain/climate/positions, não suporta PNG/JPEG/BMP comprimido ou paletas indexadas, e não substitui automaticamente os dados do cenário. O usuário ainda não forneceu os assets locais do mapa; nenhum mapa histórico foi importado.
+
 ## Referências técnicas examinadas
 
 - `eu4-parser`: extração de províncias, bordas, GeoJSON e hierarquia geográfica a partir dos assets do EU4.
@@ -104,9 +126,9 @@ Não presumir que funções, defines, formatos ou regras do EU5 se aplicam ao EU
 
 ## Próxima sequência obrigatória
 
-1. Verificar CI da branch `feature/geography-model-foundation` e corrigir qualquer falha.
-2. Fechar integridade do núcleo com testes de conexões duplicadas, referências inválidas e arquivos ausentes.
-3. Implementar importador C++ de raster RGB -> ID, extração de bordas e polígonos, terreno, clima e posições.
+1. Verificar CI da branch `feature/province-raster-importer` e corrigir qualquer falha.
+2. Gerar máscaras e polígonos simplificados a partir dos limites de província.
+3. Importar terrain/climate/positions e relacioná-los aos IDs.
 4. Criar viewport 2D interativo com pan/zoom, camadas e seleção por ID.
 5. Evoluir o terreno para 2.5D com heightmap e câmera orbital leve.
 6. Implementar save/load versionado, RNG com seed e replay.
