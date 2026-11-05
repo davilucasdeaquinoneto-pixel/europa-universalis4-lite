@@ -2,6 +2,9 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -90,6 +93,21 @@ int main() {
                     "província dentro do buraco mantém seu próprio polígono");
     passed &= check(complexContours.totalRingCount == 4,
                     "contagem total de anéis inclui ilha e buraco");
+
+    const auto svgPath = std::filesystem::temp_directory_path() /
+                         "europa-lite-contours-test.svg";
+    passed &= check(eulite::writeProvinceContoursSvg(
+                        complexContours, 5, 5, svgPath.string(), error),
+                    "exportar contornos para SVG: " + error);
+    std::ifstream svgFile(svgPath);
+    const std::string svg((std::istreambuf_iterator<char>(svgFile)),
+                          std::istreambuf_iterator<char>());
+    passed &= check(svg.find("<svg") != std::string::npos &&
+                    svg.find("fill-rule=\\"evenodd\\"") != std::string::npos &&
+                    svg.find("data-province-id=\\"1\\"") != std::string::npos,
+                    "SVG contém polígonos e regra de preenchimento para buracos");
+    std::error_code cleanupError;
+    std::filesystem::remove(svgPath, cleanupError);
 
     // Invalid input must not overwrite the previous successful result.
     const auto previousProvinceCount = contours.provinces.size();
