@@ -4,7 +4,7 @@
 
 - Repositório: https://github.com/davilucasdeaquinoneto-pixel/europa-universalis4-lite
 - Branch principal: `main`
-- Branch atual de trabalho: `feature/province-raster-importer`
+- Branch atual de trabalho: `main`
 - Stack: C++17 + CMake.
 - Objetivo: motor independente de grande estratégia, com simulação desacoplada da apresentação e desempenho em hardware modesto.
 
@@ -33,6 +33,7 @@ Leia também:
 - PR #2 (`research/subsystem-audit-and-world-hardening`) foi integrado à `main`; a CI da etapa passou em Ubuntu e Windows.
 - PR #3 (`feature/first-isometric-map-preview`) foi integrado à `main` após a CI `Build and test` concluir com sucesso.
 - PR #4 (`feature/geography-model-foundation`) foi integrado à `main`; a CI passou em Ubuntu e Windows.
+- PR #5 (`feature/province-raster-importer`) foi integrado à `main`; a CI passou em Ubuntu e Windows.
 
 ## Primeiro mapa isométrico
 
@@ -81,7 +82,7 @@ O cenário de demonstração contém um continente, três regiões, quatro sub-r
 
 ## Importador inicial de raster de províncias
 
-Branch: `feature/province-raster-importer`
+Branch integrada à `main` via PR #5
 
 Arquivos:
 - `include/map/ProvinceRaster.hpp`
@@ -126,13 +127,12 @@ Não presumir que funções, defines, formatos ou regras do EU5 se aplicam ao EU
 
 ## Próxima sequência obrigatória
 
-1. Verificar CI da branch `feature/province-raster-importer` e corrigir qualquer falha.
-2. Gerar máscaras e polígonos simplificados a partir dos limites de província.
-3. Importar terrain/climate/positions e relacioná-los aos IDs.
-4. Criar viewport 2D interativo com pan/zoom, camadas e seleção por ID.
-5. Evoluir o terreno para 2.5D com heightmap e câmera orbital leve.
-6. Implementar save/load versionado, RNG com seed e replay.
-7. Desenvolver economia, população agregada, bens, mercados, diplomacia, tecnologia, exércitos, guerra e IA.
+1. Gerar contornos e polígonos simplificados a partir dos limites de província.
+2. Importar terrain/climate/positions e relacioná-los aos IDs.
+3. Criar viewport 2D interativo com pan/zoom, camadas e seleção por ID.
+4. Evoluir o terreno para 2.5D com heightmap e câmera orbital leve.
+5. Implementar save/load versionado, RNG com seed e replay.
+6. Desenvolver economia, população agregada, bens, mercados, diplomacia, tecnologia, exércitos, guerra e IA.
 
 ## Regras para assistentes futuros
 
