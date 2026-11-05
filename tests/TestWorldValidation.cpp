@@ -85,6 +85,29 @@ int main() {
         "id,name,owner,region_id,development,terrain\n1,Capital,TST,1,-inf,plains\n");
     passed &= expectLoad(badDevelopment, false, "rejeitar desenvolvimento infinito");
 
+    const auto bom = root / "bom";
+    passed &= makeScenario(bom,
+        "\xEF\xBB\xBFtag,name,treasury,manpower,tax_modifier\n"
+        "TST,Test,10,1000,1.0\n");
+    passed &= expectLoad(bom, true, "aceitar BOM UTF-8 no cabeçalho");
+
+    {
+        eulite::World world;
+        std::string error;
+        if (!world.load(valid.string(), error)) {
+            std::cerr << "FALHOU: preparar mundo para teste transacional: " << error << "\n";
+            passed = false;
+        } else {
+            const bool invalidLoadSucceeded = world.load(badHeader.string(), error);
+            if (invalidLoadSucceeded || world.countries().size() != 1 ||
+                world.regions().size() != 1 || world.provinces().size() != 1 ||
+                !world.findCountry("TST") || !world.findProvince(1)) {
+                std::cerr << "FALHOU: carga inválida alterou o mundo previamente carregado\n";
+                passed = false;
+            }
+        }
+    }
+
     std::filesystem::remove_all(root, ec);
     if (!passed) return 1;
     std::cout << "Todos os testes de validação CSV passaram.\n";
