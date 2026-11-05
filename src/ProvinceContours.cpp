@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
-#include <iomanip>
 #include <map>
 #include <unordered_map>
 #include <utility>
@@ -54,10 +53,6 @@ void addEdge(std::vector<BoundaryEdge>& edges,
     const std::size_t index = edges.size();
     edges.push_back({provinceId, startX, startY, endX, endY, direction, false});
     outgoing[{provinceId, startX, startY}].push_back(index);
-}
-
-bool samePoint(const ProvinceContourPoint& a, const ProvinceContourPoint& b) {
-    return a.x == b.x && a.y == b.y;
 }
 
 std::vector<ProvinceContourPoint> simplifyCollinear(
@@ -249,7 +244,7 @@ bool writeProvinceContoursSvg(const ProvinceContourData& contours,
     output << "<rect width=\"100%\" height=\"100%\" fill=\"#b9ced1\"/>\n";
 
     for (const auto& province : contours.provinces) {
-        if (province.provinceId == 0 || province.rings.empty()) {
+        if (province.rings.empty()) {
             error = "Polígono inválido na exportação SVG.";
             return false;
         }
