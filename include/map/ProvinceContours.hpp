@@ -2,6 +2,7 @@
 
 #include "map/ProvinceRaster.hpp"
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <vector>
