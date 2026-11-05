@@ -27,6 +27,10 @@ Leia também:
 - Índice ID -> índice de província para montagem eficiente das adjacências.
 - Testes CTest e CI Windows/Linux.
 
+## Histórico de alterações integradas
+
+- PR #2 (`research/subsystem-audit-and-world-hardening`) foi integrado à `main`; a CI da etapa passou em Ubuntu e Windows.
+
 ## Primeiro mapa isométrico
 
 Branch: `feature/first-isometric-map-preview`
@@ -46,6 +50,8 @@ Alterações:
 6. Novo teste automatizado que verifica a geração do SVG.
 7. CMake atualizado para compilar o exportador e executar o teste.
 
+**PR atual:** [#3 - Add first lightweight isometric map preview](https://github.com/davilucasdeaquinoneto-pixel/europa-universalis4-lite/pull/3). A compilação/CI desta branch ainda precisa ser confirmada antes de integrar.
+
 **Limitação importante:** o mapa é uma composição esquemática das dez províncias fictícias do cenário de teste. Não representa a geografia real da Europa, não tem polígonos históricos e não é um renderer 3D interativo. É uma primeira prova visual para validar a direção 2.5D.
 
 ## Referências técnicas examinadas
@@ -55,10 +61,9 @@ Alterações:
 - `Jomini`: referência de parsing Clausewitz/Jomini textual e binário.
 - `EU5 Engine Atlas`: inventário processado de 21.332 registros de script/GUI/defines do EU5, não um motor de simulação pronto.
 - `EU5 Workbench`: ferramenta de edição, busca, guias e lint, não um motor de jogo.
-- `FIFE`: referência de engine isométrica C++ multiplataforma; sua arquitetura de camadas e ordenação visual é interessante, mas não foi adicionada como dependência.
-- `opengl-terrain-demo`: referência de heightmap, normais, iluminação e texturização por altitude/inclinação; requer OpenGL 4.5 e é avançado demais para adotar diretamente agora.
 - `FIFE`: engine C++ isométrica com renderização SDL/OpenGL, camadas, múltiplas câmeras e ordenação por profundidade; usar como referência, não como dependência nesta fase.
 - `EU Toolkit`: ferramenta EU4 com camadas temáticas, edição por fila reversível, validação e preservação de chaves desconhecidas; aproveitar padrões de ferramenta, não a stack Rust/Tauri/Svelte no motor.
+- `opengl-terrain-demo`: referência de heightmap, normais, iluminação e texturização por altitude/inclinação; requer OpenGL 4.5 e é avançado demais para adotar diretamente agora.
 
 Não presumir que funções, defines, formatos ou regras do EU5 se aplicam ao EU4 ou ao nosso motor. Guardar versão e nível de confiança de toda descoberta.
 
