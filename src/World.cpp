@@ -524,8 +524,16 @@ bool World::loadUnchecked(const std::string& dataDirectory, std::string& error) 
             connections_.push_back({provinceA, provinceB, type, oneWay});
             const auto indexA = provinceIndexById.at(provinceA);
             const auto indexB = provinceIndexById.at(provinceB);
-            provinces_[indexA].adjacentProvinceIds.push_back(provinceB);
-            if (!oneWay) provinces_[indexB].adjacentProvinceIds.push_back(provinceA);
+            auto& neighborsA = provinces_[indexA].adjacentProvinceIds;
+            if (std::find(neighborsA.begin(), neighborsA.end(), provinceB) == neighborsA.end()) {
+                neighborsA.push_back(provinceB);
+            }
+            if (!oneWay) {
+                auto& neighborsB = provinces_[indexB].adjacentProvinceIds;
+                if (std::find(neighborsB.begin(), neighborsB.end(), provinceA) == neighborsB.end()) {
+                    neighborsB.push_back(provinceA);
+                }
+            }
         }
     }
 
