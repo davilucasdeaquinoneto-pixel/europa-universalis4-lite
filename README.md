@@ -4,14 +4,14 @@ Projeto independente de grande estratégia inspirado no gênero Europa Universal
 
 ## Estado atual
 
-**Versão 0.1.0 - motor inicial e modelo geográfico**
+**Versão 0.1.1-dev - fortalecimento do carregador de dados**
 
 - Calendário mensal iniciado em 11/11/1444.
 - Países, regiões e províncias carregados por CSV.
 - Fronteiras entre províncias representadas como adjacências bidirecionais.
 - Economia mensal provisória baseada em desenvolvimento e modificador tributário.
 - Terminal para avançar o tempo, consultar o mundo e salvar.
-- Testes automatizados e integração contínua em Windows e Linux.
+- Parser CSV com campos entre aspas, vírgulas internas e aspas escapadas.\n- Validação de cabeçalhos e rejeição de valores numéricos não finitos.\n- Testes de regressão para entradas CSV inválidas.\n- Integração contínua configurada para Windows e Linux.
 
 Esta versão é uma fundação técnica, não um jogo completo. Ainda não existem mapa visual, diplomacia, guerra, comércio ou IA.
 

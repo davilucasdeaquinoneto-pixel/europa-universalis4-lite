@@ -1,42 +1,99 @@
 # HANDOFF - Europa Universalis Lite
 
-## Estado do projeto
+## Estado atual
 
-Repositório: https://github.com/davilucasdeaquinoneto-pixel/europa-universalis4-lite
-Branch: `main`
-Versão de trabalho: 0.1.0
-Estado: motor inicial e modelo geográfico compilam e passam nos testes em Linux e Windows via GitHub Actions.
+- Repositório: https://github.com/davilucasdeaquinoneto-pixel/europa-universalis4-lite
+- Branch principal: `main`
+- Branch desta etapa: `hardening/data-loader-validation`
+- Versão de trabalho: `0.1.1-dev`
+- Pull request: https://github.com/davilucasdeaquinoneto-pixel/europa-universalis4-lite/pull/1
+- CI desta etapa: aprovada em Windows e Ubuntu (Configure, Build e Test).
 
-O repositório originalmente continha somente um README. A base foi iniciada do zero.
+O projeto começou do zero porque o repositório original continha apenas um README. Esta é uma fundação técnica, ainda não um jogo completo.
 
-## Objetivo
+## Objetivo e restrições
 
-Jogo independente de grande estratégia inspirado no gênero Europa Universalis, com simulação profunda e desempenho adequado a notebook de baixo custo. Alvo informado: Windows, C++17. A simulação deve permanecer independente da interface.
+Criar um jogo independente de grande estratégia inspirado no gênero Europa Universalis, priorizando simulação profunda, IA estratégica e desempenho em hardware modesto. Alvo principal: Windows, C++17. O núcleo da simulação deve permanecer independente da interface gráfica.
 
-Não copiar código, mapas, imagens, textos ou outros recursos proprietários de Europa Universalis.
+Não copiar código, mapas, imagens, textos ou outros recursos proprietários de jogos comerciais.
 
-## Arquivos importantes
+## Arquivos principais
 
-- `CMakeLists.txt`: build CMake, C++17, executável `europa-lite`, CTest.
-- `.gitignore`: ignora build e arquivos locais.
-- `include/core/Date.hpp`: calendário e avanço mensal.
+- `CMakeLists.txt`: build CMake, executável `europa-lite` e configuração CTest.
+- `include/core/Date.hpp`: calendário mensal.
 - `include/world/World.hpp`: países, regiões, províncias e adjacências.
 - `include/simulation/Game.hpp`: API da partida.
-- `src/World.cpp`: parser CSV e validação do cenário.
-- `src/Game.cpp`: ciclo mensal, economia provisória, status, províncias e save.
-- `src/main.cpp`: interface de terminal e comandos.
-- `data/countries.csv`: quatro países de teste.
-- `data/regions.csv`: três regiões de teste.
-- `data/provinces.csv`: dez províncias de teste.
+- `src/World.cpp`: parser CSV e validação dos dados do cenário.
+- `src/Game.cpp`: avanço mensal, economia provisória, consultas e save textual.
+- `src/main.cpp`: interface de terminal.
+- `data/countries.csv`: quatro países de demonstração.
+- `data/regions.csv`: três regiões de demonstração.
+- `data/provinces.csv`: dez províncias de demonstração.
 - `data/adjacencies.csv`: grafo inicial de fronteiras.
-- `tests/TestCore.cpp`: testes de calendário, entidades, desenvolvimento e adjacência.
-- `.github/workflows/ci.yml`: compilação e testes em Linux e Windows.
+- `tests/TestCore.cpp`: testes do calendário e modelo geográfico.
+- `tests/TestWorldValidation.cpp`: testes de regressão do parser e entradas inválidas.
+- `.github/workflows/ci.yml`: compilação e testes em Windows e Linux.
 - `docs/ARCHITECTURE.md`: decisões arquiteturais.
 - `README.md`: apresentação e instruções.
+- `HANDOFF.md`: este documento.
 
-## Como compilar
+## Sistemas já implementados
 
-Requer CMake 3.20+ e compilador C++17. Ninja é recomendado, mas não obrigatório.
+- Data inicial 11/11/1444 e avanço mensal.
+- Países com tesouro, mão de obra e modificador tributário.
+- Regiões geográficas.
+- Províncias com proprietário, região, desenvolvimento e terreno.
+- Adjacência bidirecional carregada de CSV.
+- Economia temporária: desenvolvimento total × 0,10 × modificador tributário.
+- Interface de terminal: `help`, `status`, `provinces`, `tick`, `save`, `quit`.
+- Save textual inicial, ainda sem carregamento.
+- Testes automatizados e CI para Windows/Linux.
+
+## Etapa 1 em andamento: fortalecer o carregador de dados
+
+Na branch `hardening/data-loader-validation`:
+
+- Parser CSV suporta campos entre aspas, vírgulas internas e aspas escapadas (`""`).
+- Rejeita aspas não fechadas e caracteres inesperados após o fechamento de aspas.
+- Valida os cabeçalhos dos quatro arquivos CSV.
+- Rejeita valores `NaN` e infinitos nos campos `double`.
+- Mensagens de erro identificam arquivo e linha.
+- Novo alvo CTest `europa-lite-validation-tests`.
+- Testes cobrem campo citado com vírgula e aspas, NaN, infinito, aspas não fechadas, cabeçalho incorreto e desenvolvimento infinito.
+
+### Validação observada
+
+GitHub Actions run: https://github.com/davilucasdeaquinoneto-pixel/europa-universalis4-lite/actions/runs/42033054808
+
+- `build (windows-latest)`: Configure, Build e Test aprovados.
+- `build (ubuntu-latest)`: Configure, Build e Test aprovados.
+
+## Limitações conhecidas
+
+- O cenário tem apenas dez províncias demonstrativas, não um mapa europeu histórico.
+- Ainda não há mapa visual nem interface SDL.
+- O parser é um leitor CSV de uma linha por registro; campos multilinha não são suportados.
+- O carregamento de `World` ainda não é transacional: se um arquivo falhar após os anteriores terem sido lidos, o objeto pode ficar parcialmente preenchido.
+- Ainda faltam testes adicionais para IDs duplicados, referências inexistentes e adjacências duplicadas.
+- O grafo não diferencia fronteiras terrestres, estreitos, rios ou rotas marítimas.
+- Não há carregamento de save.
+- A economia é provisória; não há produção, comércio, despesas ou manutenção.
+- Não há diplomacia, guerra, rebeliões, tecnologia, eventos, colonização ou IA.
+
+## Próximos passos, nesta ordem
+
+1. Integrar esta etapa após CI verde.
+2. Tornar o carregamento de `World` transacional: ler e validar em estruturas temporárias e só publicar o novo mundo após sucesso total.
+3. Acrescentar testes negativos para IDs duplicados, referências inexistentes, adjacências duplicadas e arquivos ausentes.
+4. Separar o parser CSV em módulo reutilizável, se isso reduzir duplicação e facilitar testes.
+5. Depois, adicionar tipos de fronteira e áreas/sub-regiões.
+6. Só então iniciar a economia modular com receitas, despesas, produção e manutenção.
+
+Não iniciar mapa gráfico, diplomacia ou guerra antes de estabilizar o motor e o carregamento dos dados.
+
+## Como compilar e testar
+
+Requer CMake 3.20+ e compilador C++17. Ninja é recomendado.
 
 ```bash
 cmake -S . -B build -G Ninja -DBUILD_TESTING=ON
@@ -45,73 +102,16 @@ ctest --test-dir build --output-on-failure
 ./build/europa-lite
 ```
 
-No Windows, execute `build/europa-lite.exe`. Rode a partir da raiz do repositório para localizar a pasta `data`.
-
-## Comandos
-
-- `help`
-- `status`
-- `provinces`
-- `tick [meses]`
-- `save [arquivo]`
-- `quit`
-
-## Sistemas implementados
-
-- Data inicial 11/11/1444 e avanço mensal.
-- Países com tesouro, efetivo de mão de obra e modificador tributário.
-- Regiões geográficas.
-- Províncias com dono, região, desenvolvimento e terreno.
-- Adjacência bidirecional entre províncias, carregada de CSV.
-- Economia mensal temporária: desenvolvimento total × 0,10 × modificador tributário.
-- Consulta de status e listagem geográfica no terminal.
-- Save textual inicial.
-- Testes automatizados e CI para Ubuntu/Windows.
-
-## Validação executada
-
-GitHub Actions: execução mais recente do primeiro ciclo geográfico passou nos dois sistemas:
-https://github.com/davilucasdeaquinoneto-pixel/europa-universalis4-lite/actions/runs/42029385919
-
-Passaram as etapas Configure, Build e Test em `ubuntu-latest` e `windows-latest`.
-
-Testes cobrem:
-- Data inicial e virada de ano.
-- Carregamento de países, regiões e províncias.
-- Busca de país, região e província.
-- Quantidade de províncias por país.
-- Desenvolvimento total de país.
-- Adjacência simétrica e ausência de ligação não cadastrada.
-
-## Limitações conhecidas
-
-- Ainda não há mapa visual nem interface SDL.
-- O parser CSV não suporta campos com vírgulas ou aspas.
-- Campos vazios finais precisam de tratamento específico.
-- O grafo não diferencia fronteiras terrestres, estreitos, rios ou rotas marítimas.
-- Não há carregamento de save.
-- A economia é provisória; não há produção, comércio, despesas ou manutenção.
-- Não há diplomacia, guerra, rebeliões, tecnologia, eventos ou IA.
-- O cenário contém somente dez províncias de demonstração, não um mapa histórico europeu.
-
-## Próxima etapa recomendada
-
-1. Melhorar o parser CSV, validar valores finitos e criar testes negativos para dados inválidos.
-2. Adicionar tipo de fronteira e estrutura de áreas/sub-regiões.
-3. Criar módulo de economia separado, com receitas, despesas e manutenção.
-4. Expandir o cenário por regiões, mantendo os dados separados do código.
-5. Planejar a interface gráfica somente depois que o núcleo de simulação estiver mais completo.
+No Windows, executar `build/europa-lite.exe`. Rodar o programa a partir da raiz do repositório para localizar a pasta `data`.
 
 ## Prompt de continuidade para outro assistente
 
-Continue o projeto existente em https://github.com/davilucasdeaquinoneto-pixel/europa-universalis4-lite. Leia primeiro README.md, HANDOFF.md e docs/ARCHITECTURE.md. Não crie outro projeto nem substitua a arquitetura sem justificar.
+Continue o projeto existente: https://github.com/davilucasdeaquinoneto-pixel/europa-universalis4-lite
 
-Projeto C++17/CMake. A simulação deve permanecer independente da interface gráfica e ser eficiente em hardware modesto. Já existem calendário mensal, países, regiões, províncias, adjacências bidirecionais, carregamento CSV, economia mensal provisória, CLI, save textual, testes e CI Windows/Linux.
+Leia primeiro `README.md`, `HANDOFF.md` e `docs/ARCHITECTURE.md`. Não crie outro repositório nem substitua a arquitetura sem justificativa técnica. O projeto é C++17/CMake e deve priorizar simulação profunda com baixo consumo de memória e CPU. O núcleo deve continuar independente da interface gráfica.
 
-Antes de implementar:
-- confira o branch main;
-- confira o resultado mais recente do GitHub Actions;
-- compile e execute CTest;
-- corrija falhas reais antes de adicionar sistemas.
+Estado atual: calendário mensal, países, regiões, províncias, adjacências, economia provisória, CLI e save textual inicial. O carregador CSV foi fortalecido para campos citados, vírgulas internas, aspas escapadas, cabeçalhos validados e rejeição de NaN/infinito. Foram adicionados testes de regressão. A CI da etapa passou em Windows e Ubuntu.
 
-Próxima tarefa: endurecer parser e validação de dados com testes negativos; depois adicionar tipos de fronteira e áreas/sub-regiões. Em seguida, separar a economia em um módulo próprio. Atualize HANDOFF.md a cada etapa. Não afirme que compilou ou testou sem executar os comandos e observar o resultado. Preserve as alterações existentes e faça commits pequenos e descritivos.
+Próxima tarefa obrigatória: tornar `World::load` transacional. Carregue países, regiões, províncias e adjacências em estruturas temporárias; em qualquer erro, preserve integralmente o mundo anterior; só substitua o estado atual após todas as validações passarem. Adicione testes demonstrando que uma carga inválida não destrói um mundo já carregado.
+
+Depois acrescente testes para IDs duplicados, referências inexistentes, adjacências duplicadas e arquivos ausentes. Mantenha mensagens de erro com arquivo e linha. Atualize README, arquitetura e HANDOFF. Execute compilação e CTest e aguarde CI Windows/Linux. Não declare testes aprovados sem observar os resultados reais. Faça mudanças pequenas e commits descritivos. Não avance para economia, mapa ou diplomacia enquanto esta etapa de robustez não estiver concluída.

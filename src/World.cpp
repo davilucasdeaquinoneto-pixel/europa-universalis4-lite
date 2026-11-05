@@ -1,6 +1,7 @@
 #include "world/World.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <sstream>
 #include <unordered_set>
@@ -10,19 +11,62 @@
 namespace eulite {
 namespace {
 
-std::vector<std::string> splitCsvLine(const std::string& line) {
-    std::vector<std::string> fields;
-    std::stringstream stream(line);
+// CSV reader supporting quoted fields, commas inside quotes and escaped quotes ("").
+// Quotes are only valid at the beginning of a field; characters after a closing
+// quote must be a comma or the end of the line.
+bool parseCsvLine(const std::string& line, std::vector<std::string>& fields) {
+    fields.clear();
     std::string field;
-    while (std::getline(stream, field, ',')) fields.push_back(field);
-    return fields;
+    bool quoted = false;
+    bool quoteClosed = false;
+
+    for (std::size_t i = 0; i < line.size(); ++i) {
+        const char ch = line[i];
+
+        if (quoted) {
+            if (ch == '"') {
+                if (i + 1 < line.size() && line[i + 1] == '"') {
+                    field.push_back('"');
+                    ++i;
+                } else {
+                    quoted = false;
+                    quoteClosed = true;
+                }
+            } else {
+                field.push_back(ch);
+            }
+            continue;
+        }
+
+        if (quoteClosed) {
+            if (ch != ',') return false;
+            fields.push_back(field);
+            field.clear();
+            quoteClosed = false;
+            continue;
+        }
+
+        if (ch == ',') {
+            fields.push_back(field);
+            field.clear();
+        } else if (ch == '"') {
+            if (!field.empty()) return false;
+            quoted = true;
+        } else {
+            field.push_back(ch);
+        }
+    }
+
+    if (quoted) return false;
+    fields.push_back(field);
+    return true;
 }
 
 bool parseDouble(const std::string& value, double& result) {
     try {
         std::size_t used = 0;
         result = std::stod(value, &used);
-        return used == value.size();
+        return used == value.size() && std::isfinite(result);
     } catch (...) {
         return false;
     }
@@ -36,6 +80,12 @@ bool parseInt(const std::string& value, int& result) {
     } catch (...) {
         return false;
     }
+}
+
+bool readCsvFields(const std::string& line, std::vector<std::string>& fields) {
+    std::string normalized = line;
+    if (!normalized.empty() && normalized.back() == '\r') normalized.pop_back();
+    return parseCsvLine(normalized, fields);
 }
 
 } // namespace
@@ -52,13 +102,20 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
     }
 
     std::string line;
-    std::getline(countryFile, line);
+    std::vector<std::string> fields;
+    if (!std::getline(countryFile, line) || !readCsvFields(line, fields) ||
+        fields != std::vector<std::string>{"tag", "name", "treasury", "manpower", "tax_modifier"}) {
+        error = "Cabeçalho inválido em countries.csv.";
+        return false;
+    }
+
     std::unordered_set<std::string> countryTags;
+    std::size_t lineNumber = 1;
     while (std::getline(countryFile, line)) {
-        if (line.empty()) continue;
-        const auto fields = splitCsvLine(line);
-        if (fields.size() != 5) {
-            error = "Linha inválida em countries.csv: " + line;
+        ++lineNumber;
+        if (line.empty() || line == "\r") continue;
+        if (!readCsvFields(line, fields) || fields.size() != 5) {
+            error = "CSV inválido em countries.csv na linha " + std::to_string(lineNumber);
             return false;
         }
 
@@ -66,7 +123,7 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
         if (!parseDouble(fields[2], country.treasury) ||
             !parseInt(fields[3], country.manpower) ||
             !parseDouble(fields[4], country.taxModifier)) {
-            error = "Número inválido em countries.csv: " + line;
+            error = "Número inválido em countries.csv na linha " + std::to_string(lineNumber);
             return false;
         }
         country.tag = fields[0];
@@ -75,7 +132,8 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
             country.treasury < 0.0 || country.manpower < 0 ||
             country.taxModifier < 0.0 ||
             !countryTags.insert(country.tag).second) {
-            error = "País inválido ou tag duplicada: " + line;
+            error = "País inválido ou tag duplicada em countries.csv na linha " +
+                    std::to_string(lineNumber);
             return false;
         }
         countries_.push_back(country);
@@ -87,20 +145,31 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
         return false;
     }
 
-    std::getline(regionFile, line);
+    if (!std::getline(regionFile, line) || !readCsvFields(line, fields) ||
+        fields != std::vector<std::string>{"id", "name"}) {
+        error = "Cabeçalho inválido em regions.csv.";
+        return false;
+    }
+
     std::unordered_set<int> regionIds;
+    lineNumber = 1;
     while (std::getline(regionFile, line)) {
-        if (line.empty()) continue;
-        const auto fields = splitCsvLine(line);
+        ++lineNumber;
+        if (line.empty() || line == "\r") continue;
+        if (!readCsvFields(line, fields) || fields.size() != 2) {
+            error = "CSV inválido em regions.csv na linha " + std::to_string(lineNumber);
+            return false;
+        }
         Region region;
-        if (fields.size() != 2 || !parseInt(fields[0], region.id)) {
-            error = "Linha inválida em regions.csv: " + line;
+        if (!parseInt(fields[0], region.id)) {
+            error = "ID inválido em regions.csv na linha " + std::to_string(lineNumber);
             return false;
         }
         region.name = fields[1];
         if (region.id <= 0 || region.name.empty() ||
             !regionIds.insert(region.id).second) {
-            error = "Região inválida ou ID duplicado: " + line;
+            error = "Região inválida ou ID duplicado em regions.csv na linha " +
+                    std::to_string(lineNumber);
             return false;
         }
         regions_.push_back(region);
@@ -112,13 +181,19 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
         return false;
     }
 
-    std::getline(provinceFile, line);
+    if (!std::getline(provinceFile, line) || !readCsvFields(line, fields) ||
+        fields != std::vector<std::string>{"id", "name", "owner", "region_id", "development", "terrain"}) {
+        error = "Cabeçalho inválido em provinces.csv.";
+        return false;
+    }
+
     std::unordered_set<int> provinceIds;
+    lineNumber = 1;
     while (std::getline(provinceFile, line)) {
-        if (line.empty()) continue;
-        const auto fields = splitCsvLine(line);
-        if (fields.size() != 6) {
-            error = "Linha inválida em provinces.csv: " + line;
+        ++lineNumber;
+        if (line.empty() || line == "\r") continue;
+        if (!readCsvFields(line, fields) || fields.size() != 6) {
+            error = "CSV inválido em provinces.csv na linha " + std::to_string(lineNumber);
             return false;
         }
 
@@ -126,7 +201,7 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
         if (!parseInt(fields[0], province.id) ||
             !parseInt(fields[3], province.regionId) ||
             !parseDouble(fields[4], province.development)) {
-            error = "Número inválido em provinces.csv: " + line;
+            error = "Número inválido em provinces.csv na linha " + std::to_string(lineNumber);
             return false;
         }
         province.name = fields[1];
@@ -134,9 +209,10 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
         province.terrain = fields[5];
 
         if (province.id <= 0 || province.name.empty() ||
-            province.development <= 0.0 ||
+            province.development <= 0.0 || province.terrain.empty() ||
             !provinceIds.insert(province.id).second) {
-            error = "Província inválida ou ID duplicado: " + line;
+            error = "Província inválida ou ID duplicado em provinces.csv na linha " +
+                    std::to_string(lineNumber);
             return false;
         }
         if (!province.ownerTag.empty() && countryTags.count(province.ownerTag) == 0) {
@@ -156,28 +232,38 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
         return false;
     }
 
-    std::getline(adjacencyFile, line);
+    if (!std::getline(adjacencyFile, line) || !readCsvFields(line, fields) ||
+        fields != std::vector<std::string>{"province_a", "province_b"}) {
+        error = "Cabeçalho inválido em adjacencies.csv.";
+        return false;
+    }
+
     std::set<std::pair<int, int>> connections;
+    lineNumber = 1;
     while (std::getline(adjacencyFile, line)) {
-        if (line.empty()) continue;
-        const auto fields = splitCsvLine(line);
+        ++lineNumber;
+        if (line.empty() || line == "\r") continue;
+        if (!readCsvFields(line, fields) || fields.size() != 2) {
+            error = "CSV inválido em adjacencies.csv na linha " + std::to_string(lineNumber);
+            return false;
+        }
         int provinceA = 0;
         int provinceB = 0;
-        if (fields.size() != 2 ||
-            !parseInt(fields[0], provinceA) ||
-            !parseInt(fields[1], provinceB)) {
-            error = "Linha inválida em adjacencies.csv: " + line;
+        if (!parseInt(fields[0], provinceA) || !parseInt(fields[1], provinceB)) {
+            error = "Número inválido em adjacencies.csv na linha " + std::to_string(lineNumber);
             return false;
         }
         if (provinceA == provinceB || provinceIds.count(provinceA) == 0 ||
             provinceIds.count(provinceB) == 0) {
-            error = "Adjacência aponta para província inválida: " + line;
+            error = "Adjacência aponta para província inválida na linha " +
+                    std::to_string(lineNumber);
             return false;
         }
 
         const auto edge = std::minmax(provinceA, provinceB);
         if (!connections.insert(edge).second) {
-            error = "Adjacência duplicada: " + line;
+            error = "Adjacência duplicada em adjacencies.csv na linha " +
+                    std::to_string(lineNumber);
             return false;
         }
 
@@ -191,6 +277,7 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
         error = "O cenário precisa conter países, regiões e províncias.";
         return false;
     }
+    error.clear();
     return true;
 }
 

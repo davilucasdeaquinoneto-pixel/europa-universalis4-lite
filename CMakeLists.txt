@@ -32,4 +32,11 @@ if(BUILD_TESTING)
         EULITE_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
     )
     add_test(NAME core-tests COMMAND europa-lite-tests)
+
+    add_executable(europa-lite-validation-tests
+        tests/TestWorldValidation.cpp
+        src/World.cpp
+    )
+    target_include_directories(europa-lite-validation-tests PRIVATE include)
+    add_test(NAME world-validation-tests COMMAND europa-lite-validation-tests)
 endif()
