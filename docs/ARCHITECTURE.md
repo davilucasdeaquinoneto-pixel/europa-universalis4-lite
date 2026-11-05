@@ -18,9 +18,11 @@ Construir um jogo de grande estratégia independente, inspirado no gênero Europ
 - `include/world/World.hpp`: países, hierarquia geográfica, províncias e conexões tipadas.
 - `include/simulation/Game.hpp`: coordenação da partida.
 - `include/map/MapPreview.hpp`: interface do exportador de mapa.
+- `include/map/ProvinceRaster.hpp`: interface do importador de raster BMP e fronteiras.
 - `src/World.cpp`: leitura e validação de CSVs.
 - `src/Game.cpp`: avanço mensal, economia provisória, consultas e save.
 - `src/MapPreview.cpp`: projeção isométrica e exportação SVG sem biblioteca gráfica.
+- `src/ProvinceRaster.cpp`: leitura BMP 24/32-bit, associação RGB -> ID e extração de fronteiras.
 - `src/main.cpp`: terminal interativo.
 - `data/map_layout.csv`: coordenadas de apresentação e elevação visual do mapa demonstrativo.
 - `data/`: países, continentes, regiões, sub-regiões, áreas, províncias, adjacências e conexões tipadas.
@@ -53,6 +55,10 @@ A evolução visual seguirá três estágios:
 
 Não começar com terreno 3D completo, tesselação adaptativa, sombras caras ou backend Vulkan/WebGPU. O hardware-alvo inclui máquinas com memória e GPU limitadas; o primeiro renderer deve priorizar baixa resolução, buffers compactos e poucas dependências.
 
+## Importador de raster
+
+`importProvinceRasterBmp` lê BMP Windows sem compressão (24 ou 32 bits), aplica definições RGB de um arquivo delimitado por ponto e vírgula e produz IDs por pixel, contagem por província e pares de fronteira. A comparação RGB é exata; cores desconhecidas causam erro, o que ajuda a detectar antialiasing. O importador não cria polígonos ainda e não altera o mundo ativo. Consulte `docs/PROVINCE_RASTER_IMPORT.md` para os limites e formatos.
+
 ## Economia provisória
 
 Cada país recebe mensalmente:
@@ -63,7 +69,7 @@ Cada país recebe mensalmente:
 
 ## Testes e integração contínua
 
-O CTest verifica calendário, carregamento do cenário, quantidades de entidades, consultas por ID/tag, desenvolvimento agregado, adjacência, hierarquia geográfica, conexões direcionais, validação de dados, preservação transacional e exportação do SVG de mapa. O GitHub Actions compila e executa os testes em Ubuntu e Windows.
+O CTest verifica calendário, carregamento do cenário, quantidades de entidades, consultas por ID/tag, desenvolvimento agregado, adjacência, hierarquia geográfica, conexões direcionais, importação de raster, extração de fronteiras, validação de dados, preservação transacional e exportação do SVG de mapa. O GitHub Actions compila e executa os testes em Ubuntu e Windows.
 
 ## Próximos módulos
 
