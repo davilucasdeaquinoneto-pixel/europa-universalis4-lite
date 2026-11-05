@@ -1,0 +1,11 @@
+id,name,owner,development,terrain
+1,Madrid,CAS,8,plains
+2,Toledo,CAS,5,hills
+3,Sevilha,CAS,7,plains
+4,Paris,FRA,10,plains
+5,Orleans,FRA,6,farmlands
+6,Normandia,FRA,5,farmlands
+7,Londres,ENG,9,farmlands
+8,Kent,ENG,5,plains
+9,Porto,POR,5,hills
+10,Lisboa,POR,7,plains
