@@ -1,4 +1,5 @@
 #include "simulation/Game.hpp"
+#include "map/MapPreview.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -35,6 +36,7 @@ int main(int argc, char* argv[]) {
                       << "provinces       - lista as províncias\n"
                       << "tick [meses]    - avança o calendário (padrão: 1 mês)\n"
                       << "save [arquivo]  - salva o estado atual\n"
+                      << "map [arquivo]   - gera um mapa isométrico SVG\n"
                       << "quit            - encerra o jogo\n";
         } else if (command == "status") {
             game.printStatus();
@@ -55,6 +57,16 @@ int main(int argc, char* argv[]) {
                 std::cout << "Jogo salvo em " << path << "\n";
             } else {
                 std::cout << error << "\n";
+            }
+        } else if (command == "map") {
+            std::string path = "mapa-demo.svg";
+            input >> path;
+            if (eulite::writeMapPreviewSvg(game.world(),
+                                           dataDirectory + "/map_layout.csv",
+                                           path, error)) {
+                std::cout << "Mapa gerado em " << path << "\n";
+            } else {
+                std::cout << "Falha ao gerar mapa: " << error << "\n";
             }
         } else {
             std::cout << "Comando desconhecido. Digite 'help'.\n";
