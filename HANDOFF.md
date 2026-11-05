@@ -148,12 +148,11 @@ Não presumir que funções, defines, formatos ou regras do EU5 se aplicam ao EU
 ## Próxima sequência obrigatória
 
 1. Validar topologia dos anéis e associar buracos ao componente externo correto.
-2. Exportar os polígonos para GeoJSON/SVG para inspeção visual.
-3. Importar terrain/climate/positions e relacioná-los aos IDs.
-4. Criar viewport 2D interativo com pan/zoom, camadas e seleção por ID.
-5. Evoluir o terreno para 2.5D com heightmap e câmera orbital leve.
-6. Implementar save/load versionado, RNG com seed e replay.
-7. Desenvolver economia, população agregada, bens, mercados, diplomacia, tecnologia, exércitos, guerra e IA.
+2. Importar terrain/climate/positions e relacioná-los aos IDs.
+3. Criar viewport 2D interativo com pan/zoom, camadas e seleção por ID.
+4. Evoluir o terreno para 2.5D com heightmap e câmera orbital leve.
+5. Implementar save/load versionado, RNG com seed e replay.
+6. Desenvolver economia, população agregada, bens, mercados, diplomacia, tecnologia, exércitos, guerra e IA.
 
 ## Regras para assistentes futuros
 
