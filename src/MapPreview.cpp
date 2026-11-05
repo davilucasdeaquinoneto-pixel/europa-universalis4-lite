@@ -228,7 +228,8 @@ bool writeMapPreviewSvg(const World& world,
         const double x = item.x + offsetX;
         const double y = item.y + offsetY;
         const double d = item.depth;
-        const std::string top = ownerColors.at(province.ownerTag);
+        const std::string top = province.ownerTag.empty()
+            ? "#858f8f" : ownerColors.at(province.ownerTag);
         const std::string side = darken(top);
 
         // Two visible vertical faces create the low-poly, EU3-era block-map effect.
