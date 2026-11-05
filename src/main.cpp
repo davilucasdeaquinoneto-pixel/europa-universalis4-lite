@@ -104,24 +104,24 @@ int main(int argc, char* argv[]) {
             eulite::ProvinceRasterData raster;
             if (!eulite::importProvinceRasterBmp(bitmapPath, definitionPath,
                                                   raster, error)) {
-                std::cout << "Falha na importação: " << error << "\\n";
+                std::cout << "Falha na importação: " << error << "\n";
                 continue;
             }
 
             std::ofstream adjacencyOutput(outputPath);
             if (!adjacencyOutput) {
-                std::cout << "Não foi possível criar " << outputPath << "\\n";
+                std::cout << "Não foi possível criar " << outputPath << "\n";
                 continue;
             }
             adjacencyOutput << "province_a,province_b\\n";
             for (const auto& boundary : raster.boundaries) {
                 adjacencyOutput << boundary.provinceA << ','
-                                << boundary.provinceB << "\\n";
+                                << boundary.provinceB << "\n";
             }
             std::cout << "Raster importado: " << raster.width << "x" << raster.height
                       << " | Províncias: " << raster.provincePixelCounts.size()
                       << " | Fronteiras: " << raster.boundaries.size()
-                      << " | Arquivo: " << outputPath << "\\n";
+                      << " | Arquivo: " << outputPath << "\n";
         } else if (command == "tick") {
             int months = 1;
             if (input >> months && months < 0) {
