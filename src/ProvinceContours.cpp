@@ -245,8 +245,8 @@ bool writeProvinceContoursSvg(const ProvinceContourData& contours,
 
     output << "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 "
            << width << ' ' << height << "\" role=\"img\" "
-           << "aria-label=\"Mapa de províncias extraído do raster\">\\n";
-    output << "<rect width=\"100%\" height=\"100%\" fill=\"#b9ced1\"/>\\n";
+           << "aria-label=\"Mapa de províncias extraído do raster\">\n";
+    output << "<rect width=\"100%\" height=\"100%\" fill=\"#b9ced1\"/>\n";
 
     for (const auto& province : contours.provinces) {
         if (province.provinceId == 0 || province.rings.empty()) {
@@ -279,10 +279,10 @@ bool writeProvinceContoursSvg(const ProvinceContourData& contours,
             }
             output << 'Z';
         }
-        output << "\"/>\\n";
+        output << "\"/>\n";
     }
 
-    output << "</svg>\\n";
+    output << "</svg>\n";
     if (!output) {
         error = "Falha ao gravar o SVG de províncias.";
         return false;
