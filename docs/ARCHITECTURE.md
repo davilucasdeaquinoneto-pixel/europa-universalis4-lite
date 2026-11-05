@@ -19,12 +19,12 @@ Construir um jogo de grande estratégia independente, inspirado no gênero Europ
 - `include/simulation/Game.hpp`: coordenação da partida.
 - `include/map/MapPreview.hpp`: interface do exportador de mapa.
 - `include/map/ProvinceRaster.hpp`: interface do importador de raster BMP e fronteiras.
-- `include/map/ProvinceContours.hpp`: polígonos vetoriais extraídos dos limites de pixels.
+- `include/map/ProvinceContours.hpp`: polígonos vetoriais extraídos dos limites de pixels e exportação SVG.
 - `src/World.cpp`: leitura e validação de CSVs.
 - `src/Game.cpp`: avanço mensal, economia provisória, consultas e save.
 - `src/MapPreview.cpp`: projeção isométrica e exportação SVG sem biblioteca gráfica.
 - `src/ProvinceRaster.cpp`: leitura BMP 24/32-bit, associação RGB -> ID e extração de fronteiras.
-- `src/ProvinceContours.cpp`: extração de anéis de contorno, ilhas e buracos, com remoção de vértices colineares.
+- `src/ProvinceContours.cpp`: extração de anéis de contorno, ilhas e buracos, remoção de vértices colineares e exportação SVG.
 - `src/main.cpp`: terminal interativo.
 - `data/map_layout.csv`: coordenadas de apresentação e elevação visual do mapa demonstrativo.
 - `data/`: países, continentes, regiões, sub-regiões, áreas, províncias, adjacências e conexões tipadas.
@@ -71,11 +71,11 @@ Cada país recebe mensalmente:
 
 ## Testes e integração contínua
 
-O CTest verifica calendário, carregamento do cenário, quantidades de entidades, consultas por ID/tag, desenvolvimento agregado, adjacência, hierarquia geográfica, conexões direcionais, importação de raster, extração de fronteiras e polígonos (incluindo buracos e ilhas), validação de dados, preservação transacional e exportação do SVG de mapa. O GitHub Actions compila e executa os testes em Ubuntu e Windows.
+O CTest verifica calendário, carregamento do cenário, quantidades de entidades, consultas por ID/tag, desenvolvimento agregado, adjacência, hierarquia geográfica, conexões direcionais, importação de raster, extração de fronteiras e polígonos (incluindo buracos e ilhas), exportação SVG, validação de dados, preservação transacional e exportação do SVG de mapa. O GitHub Actions compila e executa os testes em Ubuntu e Windows.
 
 ## Próximos módulos
 
-1. Validar topologia dos polígonos e exportar geometria para inspeção visual.
+1. Validar topologia dos polígonos e associar buracos ao contorno externo correto.
 2. Importar terrain/climate/positions e associar metadados às províncias.
 3. Criar viewport 2D com pan/zoom, seleção por ID e camadas temáticas.
 4. Adicionar costas, rios, portos, estreitos e regras de navegação.
