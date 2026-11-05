@@ -3,6 +3,8 @@
 #include <fstream>
 #include <sstream>
 #include <unordered_set>
+#include <set>
+#include <utility>
 
 namespace eulite {
 namespace {
@@ -11,9 +13,7 @@ std::vector<std::string> splitCsvLine(const std::string& line) {
     std::vector<std::string> fields;
     std::stringstream stream(line);
     std::string field;
-    while (std::getline(stream, field, ',')) {
-        fields.push_back(field);
-    }
+    while (std::getline(stream, field, ',')) fields.push_back(field);
     return fields;
 }
 
@@ -40,6 +40,7 @@ bool parseInt(const std::string& value, int& result) {
 } // namespace
 
 bool World::load(const std::string& dataDirectory, std::string& error) {
+    regions_.clear();
     provinces_.clear();
     countries_.clear();
 
@@ -50,9 +51,8 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
     }
 
     std::string line;
-    std::getline(countryFile, line); // Header
+    std::getline(countryFile, line);
     std::unordered_set<std::string> countryTags;
-
     while (std::getline(countryFile, line)) {
         if (line.empty()) continue;
         const auto fields = splitCsvLine(line);
@@ -71,11 +71,38 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
         country.tag = fields[0];
         country.name = fields[1];
         if (country.tag.empty() || country.name.empty() ||
+            country.treasury < 0.0 || country.manpower < 0 ||
+            country.taxModifier < 0.0 ||
             !countryTags.insert(country.tag).second) {
-            error = "Tag ou nome vazio, ou tag duplicada: " + line;
+            error = "País inválido ou tag duplicada: " + line;
             return false;
         }
         countries_.push_back(country);
+    }
+
+    std::ifstream regionFile(dataDirectory + "/regions.csv");
+    if (!regionFile) {
+        error = "Não foi possível abrir regions.csv em " + dataDirectory;
+        return false;
+    }
+
+    std::getline(regionFile, line);
+    std::unordered_set<int> regionIds;
+    while (std::getline(regionFile, line)) {
+        if (line.empty()) continue;
+        const auto fields = splitCsvLine(line);
+        Region region;
+        if (fields.size() != 2 || !parseInt(fields[0], region.id)) {
+            error = "Linha inválida em regions.csv: " + line;
+            return false;
+        }
+        region.name = fields[1];
+        if (region.id <= 0 || region.name.empty() ||
+            !regionIds.insert(region.id).second) {
+            error = "Região inválida ou ID duplicado: " + line;
+            return false;
+        }
+        regions_.push_back(region);
     }
 
     std::ifstream provinceFile(dataDirectory + "/provinces.csv");
@@ -84,69 +111,120 @@ bool World::load(const std::string& dataDirectory, std::string& error) {
         return false;
     }
 
-    std::getline(provinceFile, line); // Header
+    std::getline(provinceFile, line);
     std::unordered_set<int> provinceIds;
     while (std::getline(provinceFile, line)) {
         if (line.empty()) continue;
         const auto fields = splitCsvLine(line);
-        if (fields.size() != 5) {
+        if (fields.size() != 6) {
             error = "Linha inválida em provinces.csv: " + line;
             return false;
         }
 
         Province province;
         if (!parseInt(fields[0], province.id) ||
-            !parseDouble(fields[3], province.development)) {
+            !parseInt(fields[3], province.regionId) ||
+            !parseDouble(fields[4], province.development)) {
             error = "Número inválido em provinces.csv: " + line;
             return false;
         }
         province.name = fields[1];
         province.ownerTag = fields[2];
-        province.terrain = fields[4];
+        province.terrain = fields[5];
 
         if (province.id <= 0 || province.name.empty() ||
             province.development <= 0.0 ||
             !provinceIds.insert(province.id).second) {
-            error = "ID, nome ou desenvolvimento inválido, ou ID duplicado: " + line;
+            error = "Província inválida ou ID duplicado: " + line;
             return false;
         }
         if (!province.ownerTag.empty() && countryTags.count(province.ownerTag) == 0) {
             error = "País proprietário inexistente na província: " + province.name;
             return false;
         }
+        if (regionIds.count(province.regionId) == 0) {
+            error = "Região inexistente na província: " + province.name;
+            return false;
+        }
         provinces_.push_back(province);
     }
 
-    if (countries_.empty()) {
-        error = "countries.csv não contém países.";
+    std::ifstream adjacencyFile(dataDirectory + "/adjacencies.csv");
+    if (!adjacencyFile) {
+        error = "Não foi possível abrir adjacencies.csv em " + dataDirectory;
         return false;
     }
-    if (provinces_.empty()) {
-        error = "provinces.csv não contém províncias.";
+
+    std::getline(adjacencyFile, line);
+    std::set<std::pair<int, int>> connections;
+    while (std::getline(adjacencyFile, line)) {
+        if (line.empty()) continue;
+        const auto fields = splitCsvLine(line);
+        int provinceA = 0;
+        int provinceB = 0;
+        if (fields.size() != 2 ||
+            !parseInt(fields[0], provinceA) ||
+            !parseInt(fields[1], provinceB)) {
+            error = "Linha inválida em adjacencies.csv: " + line;
+            return false;
+        }
+        if (provinceA == provinceB || provinceIds.count(provinceA) == 0 ||
+            provinceIds.count(provinceB) == 0) {
+            error = "Adjacência aponta para província inválida: " + line;
+            return false;
+        }
+
+        const auto edge = std::minmax(provinceA, provinceB);
+        if (!connections.insert(edge).second) {
+            error = "Adjacência duplicada: " + line;
+            return false;
+        }
+
+        for (auto& province : provinces_) {
+            if (province.id == provinceA) province.adjacentProvinceIds.push_back(provinceB);
+            if (province.id == provinceB) province.adjacentProvinceIds.push_back(provinceA);
+        }
+    }
+
+    if (countries_.empty() || regions_.empty() || provinces_.empty()) {
+        error = "O cenário precisa conter países, regiões e províncias.";
         return false;
     }
     return true;
 }
 
 Country* World::findCountry(const std::string& tag) {
-    for (auto& country : countries_) {
-        if (country.tag == tag) return &country;
-    }
+    for (auto& country : countries_) if (country.tag == tag) return &country;
     return nullptr;
 }
 
 const Country* World::findCountry(const std::string& tag) const {
-    for (const auto& country : countries_) {
-        if (country.tag == tag) return &country;
-    }
+    for (const auto& country : countries_) if (country.tag == tag) return &country;
     return nullptr;
+}
+
+const Region* World::findRegion(int id) const {
+    for (const auto& region : regions_) if (region.id == id) return &region;
+    return nullptr;
+}
+
+const Province* World::findProvince(int id) const {
+    for (const auto& province : provinces_) if (province.id == id) return &province;
+    return nullptr;
+}
+
+bool World::areAdjacent(int provinceA, int provinceB) const {
+    const Province* province = findProvince(provinceA);
+    if (!province) return false;
+    for (const int neighborId : province->adjacentProvinceIds) {
+        if (neighborId == provinceB) return true;
+    }
+    return false;
 }
 
 int World::countOwnedProvinces(const std::string& tag) const {
     int count = 0;
-    for (const auto& province : provinces_) {
-        if (province.ownerTag == tag) ++count;
-    }
+    for (const auto& province : provinces_) if (province.ownerTag == tag) ++count;
     return count;
 }
 
