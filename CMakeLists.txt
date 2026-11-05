@@ -51,4 +51,14 @@ if(BUILD_TESTING)
         EULITE_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
     )
     add_test(NAME map-preview-tests COMMAND europa-lite-map-tests)
+
+    add_executable(europa-lite-geography-tests
+        tests/TestGeography.cpp
+        src/World.cpp
+    )
+    target_include_directories(europa-lite-geography-tests PRIVATE include)
+    target_compile_definitions(europa-lite-geography-tests PRIVATE
+        EULITE_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+    )
+    add_test(NAME geography-tests COMMAND europa-lite-geography-tests)
 endif()

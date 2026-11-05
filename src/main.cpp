@@ -5,6 +5,21 @@
 #include <sstream>
 #include <string>
 
+namespace {
+
+const char* connectionTypeName(eulite::ConnectionType type) {
+    switch (type) {
+    case eulite::ConnectionType::Land: return "terra";
+    case eulite::ConnectionType::Sea: return "mar";
+    case eulite::ConnectionType::Strait: return "estreito";
+    case eulite::ConnectionType::River: return "rio";
+    case eulite::ConnectionType::Impassable: return "intransponível";
+    }
+    return "desconhecido";
+}
+
+} // namespace
+
 int main(int argc, char* argv[]) {
     const std::string dataDirectory = argc > 1 ? argv[1] : "data";
 
@@ -34,6 +49,8 @@ int main(int argc, char* argv[]) {
         if (command == "help") {
             std::cout << "status          - mostra países e economia\n"
                       << "provinces       - lista as províncias\n"
+                      << "geography       - mostra a hierarquia geográfica\n"
+                      << "connections     - lista ligações entre províncias\n"
                       << "tick [meses]    - avança o calendário (padrão: 1 mês)\n"
                       << "save [arquivo]  - salva o estado atual\n"
                       << "map [arquivo]   - gera um mapa isométrico SVG\n"
@@ -42,6 +59,38 @@ int main(int argc, char* argv[]) {
             game.printStatus();
         } else if (command == "provinces") {
             game.printProvinces();
+        } else if (command == "geography") {
+            const auto& world = game.world();
+            std::cout << "Continentes: " << world.continents().size()
+                      << " | Regiões: " << world.regions().size()
+                      << " | Sub-regiões: " << world.subregions().size()
+                      << " | Áreas: " << world.areas().size()
+                      << " | Províncias: " << world.provinces().size() << "\n";
+            for (const auto& continent : world.continents()) {
+                std::cout << "\n" << continent.name << "\n";
+                for (const auto& region : world.regions()) {
+                    if (region.continentId != continent.id) continue;
+                    std::cout << "  " << region.name << "\n";
+                    for (const auto& subregion : world.subregions()) {
+                        if (subregion.regionId != region.id) continue;
+                        std::cout << "    " << subregion.name << "\n";
+                        for (const auto& area : world.areas()) {
+                            if (area.subregionId == subregion.id) {
+                                std::cout << "      " << area.name << "\n";
+                            }
+                        }
+                    }
+                }
+            }
+        } else if (command == "connections") {
+            for (const auto& connection : game.world().connections()) {
+                std::cout << connection.provinceA << " -> " << connection.provinceB
+                          << " | " << connectionTypeName(connection.type)
+                          << (connection.oneWay ? " | sentido único" : " | bidirecional")
+                          << (game.world().hasPassableConnection(connection.provinceA,
+                                                                  connection.provinceB)
+                              ? " | transitável" : " | bloqueada") << "\n";
+            }
         } else if (command == "tick") {
             int months = 1;
             if (input >> months && months < 0) {

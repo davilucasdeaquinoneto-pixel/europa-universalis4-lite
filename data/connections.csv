@@ -1,0 +1,5 @@
+province_a,province_b,type,one_way
+1,7,sea,0
+7,8,strait,0
+2,5,river,1
+3,4,impassable,0

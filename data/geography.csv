@@ -1,0 +1,15 @@
+type,id,name,parent_id
+continent,1,Europa,0
+region,1,Iberia,1
+region,2,France,1
+region,3,British Isles,1
+subregion,1,Iberia Ocidental,1
+subregion,2,Iberia Meridional,1
+subregion,3,Bacia de Paris,2
+subregion,4,Inglaterra Meridional,3
+area,1,Meseta Central,1
+area,2,Andaluzia,2
+area,3,Portugal,1
+area,4,Bacia do Sena,3
+area,5,Normandia,3
+area,6,Kent e Londres,4

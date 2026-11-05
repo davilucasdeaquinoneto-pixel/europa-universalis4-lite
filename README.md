@@ -4,11 +4,12 @@ Projeto independente de grande estratégia inspirado no gênero Europa Universal
 
 ## Estado atual
 
-**Versão 0.2.0-dev - primeiro protótipo de mapa isométrico**
+**Versão 0.3.0-dev - fundação do modelo geográfico**
 
 - Calendário mensal iniciado em 11/11/1444.
-- Países, regiões e províncias carregados por CSV.
-- Fronteiras entre províncias representadas como adjacências bidirecionais.
+- Países, continentes, regiões, sub-regiões, áreas e províncias carregados por CSV.
+- Ligações entre províncias tipadas como terrestres, marítimas, estreitos, rios ou intransponíveis, com suporte a sentido único.
+- Relação de cada província com sua área e hierarquia geográfica validada na carga.
 - Economia mensal provisória baseada em desenvolvimento e modificador tributário.
 - Terminal para avançar o tempo, consultar o mundo e salvar.
 - Parser CSV com campos entre aspas, vírgulas internas e aspas escapadas.
@@ -16,8 +17,9 @@ Projeto independente de grande estratégia inspirado no gênero Europa Universal
 - Testes de regressão para entradas CSV inválidas e preservação do mundo em falha de carga.
 - **Primeiro mapa isométrico 2.5D exportado para SVG**, sem dependência gráfica externa.
 - Layout visual separado dos dados de simulação em `data/map_layout.csv`.
+- Testes de hierarquia geográfica, passabilidade direcional e preservação transacional do mundo.
 
-O mapa atual usa dez províncias fictícias de demonstração. Ele valida projeção isométrica, extrusão visual, cores por país, rótulos e exportação. **Não é o mapa histórico da Europa e ainda não é um renderizador 3D interativo.**
+O cenário geográfico atual ainda usa dez províncias fictícias de demonstração. Ele valida projeção isométrica, extrusão visual, cores por país, rótulos e exportação. **Não é o mapa histórico da Europa e ainda não é um renderizador 3D interativo.**
 
 ## Tecnologias
 
@@ -55,17 +57,18 @@ O SVG pode ser aberto em um navegador. O layout aceita as colunas `province_id,g
 
 - `include/`: interfaces e modelos.
 - `src/`: implementação do motor e exportador de mapa.
-- `data/`: países, regiões, províncias, adjacências e layout visual.
+- `data/`: países, hierarquia geográfica, províncias, áreas, conexões tipadas, adjacências e layout visual.
 - `tests/`: testes automatizados.
 - `docs/ARCHITECTURE.md`: decisões arquiteturais.
+- `docs/GEOGRAPHY_DATA_FORMAT.md`: formatos CSV da hierarquia e conexões geográficas.
 - `docs/REVERSE_ENGINEERING_AUDIT.md`: auditoria de referências técnicas.
 - `docs/MAP_RENDERING_RESEARCH.md`: pesquisa complementar de engines isométricas e ferramentas de mapa.
 - `HANDOFF.md`: estado técnico e instruções de continuidade.
 
 ## Próximas etapas
 
-1. Fechar o modelo geográfico e importar dados de mapa fornecidos legalmente pelo usuário.
-2. Trocar o layout demonstrativo por raster de províncias, hierarquia geográfica e conexões tipadas.
+1. Implementar o importador de raster RGB -> ID e derivação de fronteiras/polígonos.
+2. Trocar o cenário fictício por dados geográficos próprios ou fornecidos legalmente pelo usuário.
 3. Criar viewport interativo 2D com pan, zoom, camadas e seleção por ID.
 4. Evoluir a apresentação para terreno 2.5D com câmera, iluminação e relevo real.
 5. Só depois avaliar um renderizador 3D mais completo.

@@ -15,7 +15,7 @@ Construir um jogo de grande estratégia independente, inspirado no gênero Europ
 ## Estrutura atual
 
 - `include/core/Date.hpp`: calendário do jogo.
-- `include/world/World.hpp`: países, regiões, províncias e relações de adjacência.
+- `include/world/World.hpp`: países, hierarquia geográfica, províncias e conexões tipadas.
 - `include/simulation/Game.hpp`: coordenação da partida.
 - `include/map/MapPreview.hpp`: interface do exportador de mapa.
 - `src/World.cpp`: leitura e validação de CSVs.
@@ -23,15 +23,25 @@ Construir um jogo de grande estratégia independente, inspirado no gênero Europ
 - `src/MapPreview.cpp`: projeção isométrica e exportação SVG sem biblioteca gráfica.
 - `src/main.cpp`: terminal interativo.
 - `data/map_layout.csv`: coordenadas de apresentação e elevação visual do mapa demonstrativo.
-- `data/`: dados de países, regiões, províncias e adjacências.
+- `data/`: países, continentes, regiões, sub-regiões, áreas, províncias, adjacências e conexões tipadas.
 
 ## Modelo geográfico
 
-Cada província tem um identificador numérico estável, nome, país proprietário, região, desenvolvimento, terreno e lista de províncias vizinhas. As fronteiras são definidas uma única vez no CSV e carregadas como relações bidirecionais.
+A hierarquia implementada é:
 
-A adjacência ainda não diferencia fronteira terrestre, estreito, rio ou rota marítima. Isso será necessário antes de implementar movimentação militar e comércio marítimo.
+`continente -> região -> sub-região -> área -> província`
 
-O layout visual fica fora de `World`: `map_layout.csv` associa cada ID a coordenadas de grade e uma elevação visual. Essa separação evita contaminar o estado da simulação com decisões de câmera ou desenho. O primeiro exportador projeta blocos em uma grade isométrica e escreve SVG. Ele é uma prova visual de conceito, não um mapa geográfico real.
+- `regions.csv` continua definindo IDs e nomes das regiões.
+- `geography.csv` associa regiões a continentes e declara continentes, sub-regiões e áreas.
+- `province_areas.csv` associa cada província a uma área.
+- `adjacencies.csv` mantém compatibilidade com o formato antigo e representa ligações terrestres bidirecionais.
+- `connections.csv` adiciona ligações terrestres, marítimas, estreitos, rios e barreiras intransponíveis, com opção de sentido único.
+
+A carga valida IDs duplicados, referências, pais hierárquicos, compatibilidade entre a região da província e a região da área, e exige que toda província tenha uma área quando a hierarquia é habilitada. O carregamento continua transacional: uma falha não substitui o mundo já carregado.
+
+`areAdjacent` responde se existe uma ligação física cadastrada. `hasPassableConnection` considera o tipo e o sentido, ignorando ligações intransponíveis. A lista legada `adjacentProvinceIds` é preenchida para consultas rápidas de vizinhança.
+
+O cenário atual é apenas uma amostra fictícia de dez províncias. A estrutura está pronta para crescer, mas ainda não contém o raster, os polígonos nem as fronteiras históricas do mapa europeu.
 
 ## Apresentação do mapa: decisão técnica
 
@@ -53,7 +63,7 @@ Cada país recebe mensalmente:
 
 ## Testes e integração contínua
 
-O CTest verifica calendário, carregamento do cenário, quantidades de entidades, consultas por ID/tag, desenvolvimento agregado, adjacência bidirecional, validação de dados e exportação do SVG de mapa. O GitHub Actions compila e executa os testes em Ubuntu e Windows.
+O CTest verifica calendário, carregamento do cenário, quantidades de entidades, consultas por ID/tag, desenvolvimento agregado, adjacência, hierarquia geográfica, conexões direcionais, validação de dados, preservação transacional e exportação do SVG de mapa. O GitHub Actions compila e executa os testes em Ubuntu e Windows.
 
 ## Próximos módulos
 
