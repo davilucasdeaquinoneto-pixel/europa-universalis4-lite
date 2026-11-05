@@ -89,8 +89,8 @@ std::string countryColor(const std::string& tag) {
 std::string darken(const std::string& color) {
     if (color.size() != 7 || color[0] != '#') return "#39434a";
     unsigned int red = 0, green = 0, blue = 0;
-    std::istringstream input(color.substr(1));
-    input >> std::hex >> red;
+    std::istringstream redInput(color.substr(1, 2));
+    redInput >> std::hex >> red;
     std::istringstream greenInput(color.substr(3, 2));
     greenInput >> std::hex >> green;
     std::istringstream blueInput(color.substr(5, 2));
