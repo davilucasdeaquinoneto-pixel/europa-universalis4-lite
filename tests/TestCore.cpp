@@ -41,8 +41,8 @@ int main() {
     passed &= check(world.areAdjacent(2, 1), "adjacência no sentido inverso");
     passed &= check(!world.areAdjacent(1, 4), "províncias de regiões diferentes sem ligação");
     const auto* madrid = world.findProvince(1);
-    passed &= check(madrid && madrid->adjacentProvinceIds.size() == 2,
-                    "lista de vizinhos de Madrid");
+    passed &= check(madrid && madrid->adjacentProvinceIds.size() == 3,
+                    "lista de vizinhos de Madrid incluindo ligação marítima");
 
     if (!passed) return 1;
     std::cout << "Todos os testes do núcleo passaram.\n";
