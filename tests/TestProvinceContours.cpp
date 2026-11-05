@@ -103,8 +103,8 @@ int main() {
     const std::string svg((std::istreambuf_iterator<char>(svgFile)),
                           std::istreambuf_iterator<char>());
     passed &= check(svg.find("<svg") != std::string::npos &&
-                    svg.find("fill-rule=\\"evenodd\\"") != std::string::npos &&
-                    svg.find("data-province-id=\\"1\\"") != std::string::npos,
+                    svg.find("fill-rule=\"evenodd\"") != std::string::npos &&
+                    svg.find("data-province-id=\"1\"") != std::string::npos,
                     "SVG contém polígonos e regra de preenchimento para buracos");
     std::error_code cleanupError;
     std::filesystem::remove(svgPath, cleanupError);
