@@ -4,6 +4,8 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <fstream>
+#include <iomanip>
 #include <map>
 #include <unordered_map>
 #include <utility>
@@ -215,6 +217,77 @@ bool extractProvinceContours(const ProvinceRasterData& raster,
     }
 
     output = std::move(candidate);
+    error.clear();
+    return true;
+}
+
+
+bool writeProvinceContoursSvg(const ProvinceContourData& contours,
+                              std::uint32_t width,
+                              std::uint32_t height,
+                              const std::string& outputPath,
+                              std::string& error) {
+    if (width == 0 || height == 0) {
+        error = "Dimensões inválidas para exportação SVG.";
+        return false;
+    }
+
+    static const char* palette[] = {
+        "#c89b55", "#5d86ad", "#b85b55", "#5c9678",
+        "#9b7bb0", "#c1844d", "#5a999c", "#9a9d61"
+    };
+
+    std::ofstream output(outputPath);
+    if (!output) {
+        error = "Não foi possível criar o SVG: " + outputPath;
+        return false;
+    }
+
+    output << "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 "
+           << width << ' ' << height << "\" role=\"img\" "
+           << "aria-label=\"Mapa de províncias extraído do raster\">\\n";
+    output << "<rect width=\"100%\" height=\"100%\" fill=\"#b9ced1\"/>\\n";
+
+    for (const auto& province : contours.provinces) {
+        if (province.provinceId == 0 || province.rings.empty()) {
+            error = "Polígono inválido na exportação SVG.";
+            return false;
+        }
+
+        const char* color = palette[province.provinceId %
+            (sizeof(palette) / sizeof(palette[0]))];
+        output << "<path fill=\"" << color
+               << "\" stroke=\"#26363b\" stroke-width=\"0.7\" "
+               << "stroke-linejoin=\"round\" fill-rule=\"evenodd\" "
+               << "data-province-id=\"" << province.provinceId << "\" d=\"";
+
+        for (const auto& ring : province.rings) {
+            if (ring.points.size() < 4) {
+                error = "Anel com menos de quatro pontos na exportação SVG.";
+                return false;
+            }
+            for (const auto& point : ring.points) {
+                if (point.x > width || point.y > height) {
+                    error = "Ponto fora das dimensões do raster na exportação SVG.";
+                    return false;
+                }
+            }
+
+            output << 'M' << ring.points.front().x << ' ' << ring.points.front().y;
+            for (std::size_t i = 1; i < ring.points.size(); ++i) {
+                output << 'L' << ring.points[i].x << ' ' << ring.points[i].y;
+            }
+            output << 'Z';
+        }
+        output << "\"/>\\n";
+    }
+
+    output << "</svg>\\n";
+    if (!output) {
+        error = "Falha ao gravar o SVG de províncias.";
+        return false;
+    }
+
     error.clear();
     return true;
 }
