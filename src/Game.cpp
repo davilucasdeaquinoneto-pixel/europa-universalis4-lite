@@ -56,13 +56,15 @@ void Game::printStatus() const {
 }
 
 void Game::printProvinces() const {
-    std::cout << "\nID   PROVÍNCIA                 DONO    DESENV.  TERRENO\n";
+    std::cout << "\nID   PROVÍNCIA                 DONO    REGIÃO          DESENV.  VIZINHAS\n";
     for (const auto& province : world_.provinces()) {
+        const Region* region = world_.findRegion(province.regionId);
         std::cout << std::left << std::setw(5) << province.id
                   << std::setw(26) << province.name
                   << std::setw(8) << (province.ownerTag.empty() ? "---" : province.ownerTag)
+                  << std::setw(16) << (region ? region->name : "Inválida")
                   << std::setw(9) << std::fixed << std::setprecision(1)
-                  << province.development << province.terrain << "\n";
+                  << province.development << province.adjacentProvinceIds.size() << "\n";
     }
     std::cout << "\n";
 }
